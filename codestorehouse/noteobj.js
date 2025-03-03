@@ -5635,32 +5635,143 @@ const os = "7.4.4",
                     r.removeNotifaction(a)
                 }, n)
             },
+            // 生成UUID
+            generateUUID() {
+                return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+                    const r = Math.random() * 16 | 0;
+                    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+                    return v.toString(16);
+                });
+            },
+            // 生成随机密钥
+            generateRandomKey(length) {
+                let result = '';
+                const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+                const charactersLength = characters.length;
+                for (let i = 0; i < length; i++) {
+                    result += characters.charAt(Math.floor(Math.random() * charactersLength));
+                }
+                return result;
+            },
+            // 生成设备指纹（替代用户ID）
+            generateDeviceFingerprint() {
+                // 收集一些浏览器和系统信息来创建"设备指纹"
+                const screenInfo = `${screen.width}x${screen.height}x${screen.colorDepth}`;
+                const timeZone = new Date().getTimezoneOffset();
+                const plugins = Array.from(navigator.plugins).map(p => p.name).join(';');
+                const osInfo = navigator.userAgentData ? navigator.userAgentData.platform : navigator.platform; // 使用 userAgentData
+                const browserInfo = navigator.userAgentData ? navigator.userAgentData.brands.map(b => `${b.brand} ${b.version}`).join('; ') : navigator.userAgent; // 使用 userAgentData
+
+                // 合并信息并哈希
+                const rawFingerprint = `${screenInfo}|${timeZone}|${osInfo}|${browserInfo}|${plugins}`;
+                return CryptoJS.SHA256(rawFingerprint).toString();
+            },
+            // 保存密钥到本地存储
+            saveKeyLocally(fileId, key) {
+                const keyData = {
+                    fileId,
+                    key,
+                    createdAt: Date.now()
+                };
+
+                // 使用GM_setValue保存（油猴特有API）
+                GM_setValue('encryptionKey_' + fileId, keyData);
+            },
             export () {
                 const e = fe.listValues(),
                     t = {};
                 for (const o of e) t[o] = fe.getValue(o, {});
-                (function(o, n, r) {
-                    const i = new Blob([o]),
-                        a = document.createElementNS("http://www.w3.org/1999/xhtml", "a");
-                    a.href = URL.createObjectURL(i), a.download = n;
-                    const s = new MouseEvent("click", {
-                        bubbles: !0,
-                        cancelable: !1,
-                        screenX: 0,
-                        screenY: 0,
-                        clientX: 0,
-                        clientY: 0,
-                        ctrlKey: !1,
-                        altKey: !1,
-                        shiftKey: !1,
-                        metaKey: !1,
-                        button: 0,
-                        relatedTarget: null
-                    });
-                    a.dispatchEvent(s), typeof r == "function" && r()
-                })(JSON.stringify(t), `${this.id}_data_${Date.now()}.txt`, () => {
-                    this.addNotification(this.lang.backUpNotifactionText)
-                })
+
+                // 生成唯一的文件ID和设备指纹
+                const fileId = generateUUID();
+                const deviceFingerprint = generateDeviceFingerprint();
+                const timestamp = Date.now();
+
+                // 生成或使用用户提供的加密密钥
+                const encryptionKey = generateRandomKey(32);
+
+                // 准备元数据，增加设备限制
+                const metadata = {
+                    fileId,
+                    deviceFingerprint,
+                    timestamp,
+                    accessCount: 0,
+                    maxAccessCount: 50, // 最多允许访问50次
+                    authorizedDevices: [deviceFingerprint], // 初始授权设备列表
+                    maxDevices: 3, // 最多允许3台设备
+                    hasCustomPassword: !!password // 标记是否使用自定义密码
+                };
+
+                // 将原始数据和元数据合并
+                const packagedData = {
+                    metadata,
+                    content: t
+                };
+
+                // 使用CryptoJS进行加密
+                const jsonString = JSON.stringify(packagedData);
+                const encrypted = CryptoJS.AES.encrypt(jsonString, encryptionKey).toString();
+
+                // 生成验证哈希
+                const verificationHash = CryptoJS.SHA256(deviceFingerprint + fileId + encryptionKey).toString();
+
+                // 将加密数据封装到导出文件中
+                const exportData = {
+                    version: "1.0",
+                    encryptedData: encrypted,
+                    verificationHash: verificationHash,
+                    hasCustomPassword: !!password
+                };
+
+                // 保存密钥到本地存储
+                saveKeyLocally(fileId, encryptionKey);
+
+                // 创建并下载加密文件
+                const blob = new Blob([JSON.stringify(exportData)], { type: 'application/json' });
+                const a = document.createElementNS("http://www.w3.org/1999/xhtml", "a");
+                a.href = URL.createObjectURL(blob);
+                a.download = `x_data_${fileId}.enc`;
+
+                // 触发下载
+                const clickEvent = new MouseEvent("click", {
+                    bubbles: true,
+                    cancelable: false,
+                    screenX: 0,
+                    screenY: 0,
+                    clientX: 0,
+                    clientY: 0,
+                    ctrlKey: false,
+                    altKey: false,
+                    shiftKey: false,
+                    metaKey: false,
+                    button: 0,
+                    relatedTarget: null
+                });
+                a.dispatchEvent(clickEvent);
+
+                // 如果是自动生成的密钥，生成密钥文件
+                if (!password) {
+                    const keyBlob = new Blob([JSON.stringify({
+                        fileId: fileId,
+                        key: encryptionKey,
+                        createdAt: timestamp
+                    })], { type: 'application/json' });
+
+                    const keyLink = document.createElementNS("http://www.w3.org/1999/xhtml", "a");
+                    keyLink.href = URL.createObjectURL(keyBlob);
+                    keyLink.download = `x_key_${fileId}.key`;
+
+                    // 显示提示，并提供下载密钥选项
+                    if (confirm('文件已加密导出。要下载密钥文件吗？\n⚠️ 注意：密钥文件用于解密，请妥善保管！')) {
+                        keyLink.dispatchEvent(clickEvent);
+                    }
+                } else {
+                    alert(`文件已加密导出。\n请记住您设置的密码：${password}\n⚠️ 注意：此密码用于解密，请妥善保管！`);
+                }
+
+                if (typeof this.addNotification === 'function') {
+                    this.addNotification(this.lang?.backUpNotifactionText || '导出成功！');
+                }
             },
             import() {
                 (function(e) {
