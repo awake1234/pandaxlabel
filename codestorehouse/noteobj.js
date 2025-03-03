@@ -5757,10 +5757,28 @@ const os = "7.4.4",
                 const keyLink = document.createElementNS("http://www.w3.org/1999/xhtml", "a");
                 keyLink.href = URL.createObjectURL(keyBlob);
                 keyLink.download = `x_key_${fileId}.key`;
+                
+
+
+                // 创建新的点击事件用于密钥文件下载
+                const keyClickEvent = new MouseEvent("click", {
+                    bubbles: true,
+                    cancelable: false,
+                    screenX: 0,
+                    screenY: 0,
+                    clientX: 0,
+                    clientY: 0,
+                    ctrlKey: false,
+                    altKey: false,
+                    shiftKey: false,
+                    metaKey: false,
+                    button: 0,
+                    relatedTarget: null
+                });
 
                 // 显示提示，并提供下载密钥选项
                 if (confirm('文件已加密导出。要下载密钥文件吗？\n⚠️ 注意：密钥文件用于解密，请妥善保管！')) {
-                    keyLink.dispatchEvent(clickEvent);
+                    keyLink.dispatchEvent(keyClickEvent);
                 }
 
                 if (typeof this.addNotification === 'function') {
