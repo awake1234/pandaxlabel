@@ -5699,7 +5699,6 @@ const os = "7.4.4",
                     maxAccessCount: 50, // 最多允许访问50次
                     authorizedDevices: [deviceFingerprint], // 初始授权设备列表
                     maxDevices: 3, // 最多允许3台设备
-                    hasCustomPassword: !!password // 标记是否使用自定义密码
                 };
 
                 // 将原始数据和元数据合并
@@ -5720,7 +5719,6 @@ const os = "7.4.4",
                     version: "1.0",
                     encryptedData: encrypted,
                     verificationHash: verificationHash,
-                    hasCustomPassword: !!password
                 };
 
                 // 保存密钥到本地存储
