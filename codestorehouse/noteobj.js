@@ -5683,12 +5683,12 @@ const os = "7.4.4",
                 for (const o of e) t[o] = fe.getValue(o, {});
 
                 // 生成唯一的文件ID和设备指纹
-                const fileId = generateUUID();
-                const deviceFingerprint = generateDeviceFingerprint();
+                const fileId = this.generateUUID();
+                const deviceFingerprint = this.generateDeviceFingerprint();
                 const timestamp = Date.now();
 
                 // 生成或使用用户提供的加密密钥
-                const encryptionKey = generateRandomKey(32);
+                const encryptionKey = this.generateRandomKey(32);
 
                 // 准备元数据，增加设备限制
                 const metadata = {
@@ -5724,7 +5724,7 @@ const os = "7.4.4",
                 };
 
                 // 保存密钥到本地存储
-                saveKeyLocally(fileId, encryptionKey);
+                this.saveKeyLocally(fileId, encryptionKey);
 
                 // 创建并下载加密文件
                 const blob = new Blob([JSON.stringify(exportData)], { type: 'application/json' });
