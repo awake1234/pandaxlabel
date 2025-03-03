@@ -5748,23 +5748,19 @@ const os = "7.4.4",
                 a.dispatchEvent(clickEvent);
 
                 // 如果是自动生成的密钥，生成密钥文件
-                if (!password) {
-                    const keyBlob = new Blob([JSON.stringify({
-                        fileId: fileId,
-                        key: encryptionKey,
-                        createdAt: timestamp
-                    })], { type: 'application/json' });
+                const keyBlob = new Blob([JSON.stringify({
+                    fileId: fileId,
+                    key: encryptionKey,
+                    createdAt: timestamp
+                })], { type: 'application/json' });
 
-                    const keyLink = document.createElementNS("http://www.w3.org/1999/xhtml", "a");
-                    keyLink.href = URL.createObjectURL(keyBlob);
-                    keyLink.download = `x_key_${fileId}.key`;
+                const keyLink = document.createElementNS("http://www.w3.org/1999/xhtml", "a");
+                keyLink.href = URL.createObjectURL(keyBlob);
+                keyLink.download = `x_key_${fileId}.key`;
 
-                    // 显示提示，并提供下载密钥选项
-                    if (confirm('文件已加密导出。要下载密钥文件吗？\n⚠️ 注意：密钥文件用于解密，请妥善保管！')) {
-                        keyLink.dispatchEvent(clickEvent);
-                    }
-                } else {
-                    alert(`文件已加密导出。\n请记住您设置的密码：${password}\n⚠️ 注意：此密码用于解密，请妥善保管！`);
+                // 显示提示，并提供下载密钥选项
+                if (confirm('文件已加密导出。要下载密钥文件吗？\n⚠️ 注意：密钥文件用于解密，请妥善保管！')) {
+                    keyLink.dispatchEvent(clickEvent);
                 }
 
                 if (typeof this.addNotification === 'function') {
