@@ -5881,7 +5881,7 @@ const os = "7.4.4",
                                             if (keyFile) {
                                                 const keyReader = new FileReader();
 
-                                                keyReader.onload = function (keyEvent) {
+                                                keyReader.onload =  (keyEvent)=>{
                                                     try {
                                                         // 解析密钥文件
                                                         const keyData = JSON.parse(keyEvent.target.result);
@@ -5903,7 +5903,7 @@ const os = "7.4.4",
                                         keyInput.click();
                                         setTimeout(() => {
                                             document.body.removeChild(keyInput);
-                                        }, 1000);
+                                        }, 10000);
                                     }
                                 } else {
                                     // 如果不是加密文件，提示用户导入正确的文件
