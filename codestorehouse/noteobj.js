@@ -5691,7 +5691,7 @@ const os = "7.4.4",
                 for (const o of e) t[o] = fe.getValue(o, {});
                 
                 // 生成唯一的文件ID和设备指纹
-                const fileId = generateUUID();
+                const fileId = this.generateUUID();
                 const localDate = this.getLocalDateString();
                 const deviceFingerprint = this.generateDeviceFingerprint();
                 const timestamp = Date.now();
