@@ -5677,13 +5677,21 @@ const os = "7.4.4",
                 // 使用GM_setValue保存（油猴特有API）
                 GM_setValue('encryptionKey_' + fileId, keyData);
             },
+            getLocalDateString() {
+                const now = new Date();
+                const year = now.getFullYear();
+                const month = String(now.getMonth() + 1).padStart(2, '0');
+                const day = String(now.getDate()).padStart(2, '0');
+                return `${year}${month}${day}`;
+            }，
+
             export () {
                 const e = fe.listValues(),
                     t = {};
                 for (const o of e) t[o] = fe.getValue(o, {});
-
+                
                 // 生成唯一的文件ID和设备指纹
-                const fileId = this.generateUUID();
+                const localDate = this.getLocalDateString();
                 const deviceFingerprint = this.generateDeviceFingerprint();
                 const timestamp = Date.now();
 
@@ -5696,7 +5704,7 @@ const os = "7.4.4",
                     deviceFingerprint,
                     timestamp,
                     accessCount: 0,
-                    maxAccessCount: 50, // 最多允许访问50次
+                    maxAccessCount: 5, // 最多允许访问5次
                     authorizedDevices: [deviceFingerprint], // 初始授权设备列表
                     maxDevices: 3, // 最多允许3台设备
                 };
@@ -5724,66 +5732,62 @@ const os = "7.4.4",
                 // 保存密钥到本地存储
                 this.saveKeyLocally(fileId, encryptionKey);
 
-                // 创建并下载加密文件
-                const blob = new Blob([JSON.stringify(exportData)], { type: 'application/json' });
-                const a = document.createElementNS("http://www.w3.org/1999/xhtml", "a");
-                a.href = URL.createObjectURL(blob);
-                a.download = `x_data_${fileId}.enc`;
+                // 使用JSZip创建压缩文件
+                const zip = new JSZip();
 
-                // 触发下载
-                const clickEvent = new MouseEvent("click", {
-                    bubbles: true,
-                    cancelable: false,
-                    screenX: 0,
-                    screenY: 0,
-                    clientX: 0,
-                    clientY: 0,
-                    ctrlKey: false,
-                    altKey: false,
-                    shiftKey: false,
-                    metaKey: false,
-                    button: 0,
-                    relatedTarget: null
-                });
-                a.dispatchEvent(clickEvent);
+                // 创建加密文件
+                const encryptedBlob = new Blob([JSON.stringify(exportData)], { type: 'application/json' });
+                zip.file(`x_data_${localDate}.enc`, encryptedBlob);
 
-                // 如果是自动生成的密钥，生成密钥文件
-                const keyBlob = new Blob([JSON.stringify({
-                    fileId: fileId,
+                // 创建密钥文件
+                const keyData = JSON.stringify({
+                    exportDate: localDate,
                     key: encryptionKey,
                     createdAt: timestamp
-                })], { type: 'application/json' });
-
-                const keyLink = document.createElementNS("http://www.w3.org/1999/xhtml", "a");
-                keyLink.href = URL.createObjectURL(keyBlob);
-                keyLink.download = `x_key_${fileId}.key`;
-                
-
-
-                // 创建新的点击事件用于密钥文件下载
-                const keyClickEvent = new MouseEvent("click", {
-                    bubbles: true,
-                    cancelable: false,
-                    screenX: 0,
-                    screenY: 0,
-                    clientX: 0,
-                    clientY: 0,
-                    ctrlKey: false,
-                    altKey: false,
-                    shiftKey: false,
-                    metaKey: false,
-                    button: 0,
-                    relatedTarget: null
                 });
+                const keyBlob = new Blob([keyData], { type: 'application/json' });
+                zip.file(`x_key_${localDate}.key`, keyBlob);
 
-                // 显示提示，并提供下载密钥选项
-                if (confirm('文件已加密导出。要下载密钥文件吗？\n⚠️ 注意：密钥文件用于解密，请妥善保管！')) {
-                    keyLink.dispatchEvent(keyClickEvent);
-                }
+                // 生成压缩文件
+                zip.generateAsync({ type: "blob" }).then(function (content) {
+                    // 创建下载链接
+                    const a = document.createElementNS("http://www.w3.org/1999/xhtml", "a");
+                    a.href = URL.createObjectURL(content);
+                    a.download = `x_export_${localDate}.zip`;
 
-                if (typeof this.addNotification === 'function') {
-                    this.addNotification(this.lang?.backUpNotifactionText || '导出成功！');
-                }
+                    // 触发下载
+                    const clickEvent = new MouseEvent("click", {
+                        bubbles: true,
+                        cancelable: false,
+                        screenX: 0,
+                        screenY: 0,
+                        clientX: 0,
+                        clientY: 0,
+                        ctrlKey: false,
+                        altKey: false,
+                        shiftKey: false,
+                        metaKey: false,
+                        button: 0,
+                        relatedTarget: null
+                    });
+                    a.dispatchEvent(clickEvent);
+
+                    // 弹窗提示保存密钥
+                    alert(`⚠️ 重要提示 ⚠️\n\n` +
+                        `你已成功导出数据并下载压缩文件。\n\n` +
+                        `压缩文件中包含：\n` +
+                        `1. 加密数据文件 (x_data_${localDate}.enc)\n` +
+                        `2. 解密密钥文件 (x_key_${localDate}.key)\n\n` +
+                        `请务必：\n` +
+                        `- 安全保存密钥文件\n` +
+                        `- 不要与他人分享密钥\n` +
+                        `- 将密钥文件与加密文件分开存储\n\n` +
+                        `密钥文件丢失将无法恢复数据！`);
+
+                    if (typeof this.addNotification === 'function') {
+                        this.addNotification(this.lang?.backUpNotifactionText || '导出成功！');
+                    }
+                });
             },
             import() {
                 (function(e) {
