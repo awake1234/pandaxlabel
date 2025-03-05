@@ -5751,6 +5751,11 @@ const os = "7.4.4",
 
                 // 生成压缩文件
                 zip.generateAsync({ type: "blob" }).then(function (content) {
+
+                    console.log("开始下载处理");
+                    console.log("内容大小:", content.size);
+
+                    try{
                     // 创建下载链接
                     const a = document.createElementNS("http://www.w3.org/1999/xhtml", "a");
                     a.href = URL.createObjectURL(content);
@@ -5788,7 +5793,10 @@ const os = "7.4.4",
                     if (typeof this.addNotification === 'function') {
                         this.addNotification(this.lang?.backUpNotifactionText || '导出成功！');
                     }
-                });
+                    }catch(error){
+                        console.error("下载触发失败",error);
+                    }
+                    }).catch(error=>{console.error("压缩过程错误：",error);});
             },
             import() {
                 (function(e) {
