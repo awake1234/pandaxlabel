@@ -5803,92 +5803,240 @@ const os = "7.4.4",
                         console.error("压缩过程错误：", error);
                     });
             },
+            // 添加导入功能
             import() {
-                (function(e) {
-                    const t = document.createElementNS("http://www.w3.org/1999/xhtml", "input");
-                    t.type = "file";
-                    t.accept = ".txt, .text, .json, .conf, .config";
-                    t.style.display = "none";
-                    t.addEventListener("change", () => {
-                        var n;
-                        if (!t.value) return console.warn("No file selected."), void e({
-                            state: !1,
-                            tip: "optionsImportNoFileText"
-                        });
-                        const o = (n = t.files) == null ? void 0 : n[0];
-                        if (!o) return console.warn("Cannot find file."), void e({
-                            state: !1,
-                            tip: "optionsImportCannotFindFile"
-                        });
-                        const {
-                            type: r
-                        } = o;
-                        if (!["application/json", "application/xml", "text/plain"].includes(r)) return console.warn("Invalid file."), void e({
-                            state: !1,
-                            tip: "optionsImportValidText"
-                        });
-                        const i = new FileReader();
-                        i.onload = a => {
-                            const {
-                                target: s
-                            } = a;
-                            if (s) {
-                                const l = s.result;
-                                if (typeof l == "string") {
-                                    // 弹出输入密码的窗口
-                                    const password = prompt("请输入密码以继续：");
-                                    if (password) {
-                                        // 处理文件内容和密码
-                                        e({
-                                            state: !0,
-                                            tip: "opened"
-                                        }, l, password); // 传递密码
+                // 创建文件选择器
+                const fileInput = document.createElementNS("http://www.w3.org/1999/xhtml", "input");
+                fileInput.type = "file";
+                fileInput.accept = ".enc";  // 只接受.enc扩展名的文件
+                fileInput.style.display = "none";
+
+                fileInput.addEventListener("change", () => {
+                    if (!fileInput.value) {
+                        console.warn("未选择文件。");
+                        if (typeof this.addNotification === 'function') {
+                            this.addNotification(this.lang?.optionsImportNoFileText || "未选择文件");
+                        } else {
+                            alert("未选择文件");
+                        }
+                        return;
+                    }
+
+                    const file = fileInput.files[0];
+                    if (!file) {
+                        console.warn("找不到文件。");
+                        if (typeof this.addNotification === 'function') {
+                            this.addNotification(this.lang?.optionsImportCannotFindFile || "找不到文件");
+                        } else {
+                            alert("找不到文件");
+                        }
+                        return;
+                    }
+
+                    const fileReader = new FileReader();
+
+                    fileReader.onload = (event) => {
+                        const { target } = event;
+                        if (target) {
+                            const fileContent = target.result;
+                            if (typeof fileContent === "string") {
+                                // 检测是否为加密文件
+                                let isEncrypted = false;
+                                try {
+                                    const parsedData = JSON.parse(fileContent);
+                                    isEncrypted = parsedData.encryptedData && parsedData.verificationHash;
+                                } catch (error) {
+                                    isEncrypted = false;
+                                }
+
+                                if (isEncrypted) {
+                                    // 处理加密文件
+                                    const exportData = JSON.parse(fileContent);
+                                    const encryptedData = exportData.encryptedData;
+                                    const hasCustomPassword = false;
+
+                                    let encryptionKey;
+
+                                    if (hasCustomPassword) {
+                                        // 如果使用了自定义密码，请求用户输入
+                                        encryptionKey = prompt('请输入解密密码：');
+                                        if (!encryptionKey) {
+                                            alert('密码不能为空');
+                                            return;
+                                        }
+
+                                        // 解密并导入
+                                        this.decryptAndImport(encryptedData, encryptionKey);
                                     } else {
-                                        alert("密码不能为空！");
+                                        // 否则请求密钥文件
+                                        alert('此文件需要密钥文件解密，请选择对应的.key文件');
+
+                                        const keyInput = document.createElement('input');
+                                        keyInput.type = 'file';
+                                        keyInput.accept = '.key';
+                                        keyInput.style.display = 'none';
+
+                                        keyInput.addEventListener('change', (keyEvent) => {
+                                            const keyFile = keyEvent.target.files[0];
+                                            if (keyFile) {
+                                                const keyReader = new FileReader();
+
+                                                keyReader.onload = function (keyEvent) {
+                                                    try {
+                                                        // 解析密钥文件
+                                                        const keyData = JSON.parse(keyEvent.target.result);
+                                                        encryptionKey = keyData.key;
+
+                                                        // 解密并导入
+                                                        this.decryptAndImport(encryptedData, encryptionKey);
+                                                    } catch (error) {
+                                                        console.error("读取密钥文件时出错:", error);
+                                                        alert("读取密钥文件失败: " + error.message);
+                                                    }
+                                                };
+
+                                                keyReader.readAsText(keyFile);
+                                            }
+                                        });
+
+                                        document.body.appendChild(keyInput);
+                                        keyInput.click();
+                                        setTimeout(() => {
+                                            document.body.removeChild(keyInput);
+                                        }, 1000);
                                     }
                                 } else {
-                                    console.warn("Not a text file.");
-                                    e({
-                                        state: !1,
-                                        tip: "optionsImportNotATextFile"
-                                    });
+                                    // 如果不是加密文件，提示用户导入正确的文件
+                                    alert("请导入正确的加密文件。当前文件不是加密格式。");
+                                    if (typeof this.addNotification === 'function') {
+                                        this.addNotification("请导入正确的加密文件", "error");
+                                    }
                                 }
-                            }
-                        };
-                        i.readAsText(o);
-                    });
-                    t.click();
-                })((e, t, password) => { // 接收密码
-                    if (e.state) {
-                        if (t) {
-                            try {
-                                const o = JSON.parse(t);
-                                if (typeof o == "object" && o) {
-                                    // 这里可以使用密码进行验证或其他操作
-                                    console.log("输入的密码：", password); // 处理密码
-                                    this.storageEvent(() => {
-                                        for (const n in o) {
-                                            n === this.configKeyName ? this.saveConfig(o[n], !1) :
-                                            n === this.groupKeyName ? this.setGroups(o[n], !1) :
-                                            n === this.itemsKeyName && this.setUsers(o[n], !1);
-                                        }
-                                        return !0;
-                                    });
+                            } else {
+                                console.warn("不是文本文件。");
+                                if (typeof this.addNotification === 'function') {
+                                    this.addNotification(this.lang?.optionsImportNotATextFile || "不是文本文件");
                                 } else {
-                                    console.warn("Content is not an object.");
-                                    this.addNotification(this.lang.optionsImportErrorObjectText, "error");
+                                    alert("不是文本文件");
                                 }
-                            } catch (o) {
-                                console.error(o);
-                                this.addNotification(this.lang.optionsImportErrorObjectText, "error");
                             }
-                        } else {
-                            this.addNotification(this.lang.optionsImportEmptyText, "error");
                         }
-                    } else {
-                        this.addNotification(this.lang[e.tip], "warn");
-                    }
+                    };
+
+                    fileReader.readAsText(file);
                 });
+
+                document.body.appendChild(fileInput);
+                fileInput.click();
+                setTimeout(() => {
+                    document.body.removeChild(fileInput);
+                }, 1000);
+            },
+
+            // 解密并导入数据
+            decryptAndImport(encryptedData, encryptionKey) {
+                try {
+                    // 解密数据
+                    const decrypted = CryptoJS.AES.decrypt(encryptedData, encryptionKey).toString(CryptoJS.enc.Utf8);
+                    if (!decrypted) {
+                        alert('解密失败：密码错误或文件损坏');
+                        return;
+                    }
+
+                    const packagedData = JSON.parse(decrypted);
+
+                    // 获取当前设备指纹
+                    const currentDeviceFingerprint = this.generateDeviceFingerprint();
+                    const fileId = packagedData.metadata.fileId;
+
+                    // 从本地存储中获取使用数据，或者从解密的数据中提取
+                    let usageData = GM_getValue('encryptedFileUsage_' + fileId, null);
+
+                    // 如果本地没有使用记录，使用解密数据中的元数据初始化
+                    if (!usageData) {
+                        usageData = {
+                            accessCount: packagedData.metadata.accessCount,
+                            maxAccessCount: packagedData.metadata.maxAccessCount,
+                            authorizedDevices: packagedData.metadata.authorizedDevices || [packagedData.metadata.deviceFingerprint],
+                            maxDevices: packagedData.metadata.maxDevices || 3
+                        };
+                    }
+
+                    // 验证访问次数
+                    if (usageData.accessCount >= usageData.maxAccessCount) {
+                        alert("导入失败: 已达到最大访问次数");
+                        return;
+                    }
+
+                    // 检查设备授权
+                    const isAuthorizedDevice = usageData.authorizedDevices.includes(currentDeviceFingerprint);
+
+                    if (!isAuthorizedDevice) {
+                        // 如果不是已授权设备，但还未达到最大设备数，则添加新设备
+                        if (usageData.authorizedDevices.length >= usageData.maxDevices) {
+                            alert(`导入失败: 已达到最大设备数量限制(${usageData.maxDevices}台)`);
+                            return;
+                        }
+
+                        // 添加新设备到授权列表
+                        usageData.authorizedDevices.push(currentDeviceFingerprint);
+                        alert("已将当前设备添加到授权设备列表");
+                    }
+
+                    // 更新访问计数
+                    usageData.accessCount += 1;
+                    GM_setValue('encryptedFileUsage_' + fileId, usageData);
+
+                    // 导入数据到系统中
+                    const content = packagedData.content;
+                    this.importDataToSystem(content);
+
+                    // 显示使用信息
+                    alert(`导入成功！\n` +
+                        `这是第 ${usageData.accessCount} 次使用，共允许使用 ${usageData.maxAccessCount} 次。\n` +
+                        `当前已授权 ${usageData.authorizedDevices.length} 台设备，最多允许 ${usageData.maxDevices} 台设备。`);
+
+                } catch (error) {
+                    console.error("解密或导入数据时出错:", error);
+                    alert("解密或导入数据失败: " + error.message);
+                }
+            },
+
+            // 导入数据到系统
+            importDataToSystem(data) {
+                console.log("数据导入:", data);
+
+                // 使用原始代码的导入逻辑
+                if (typeof window.storageEvent === 'function') {
+                    window.storageEvent(() => {
+                        for (const key in data) {
+                            if (key === window.configKeyName) {
+                                window.saveConfig(data[key], false);
+                            } else if (key === window.groupKeyName) {
+                                window.setGroups(data[key], false);
+                            } else if (key === window.itemsKeyName) {
+                                window.setUsers(data[key], false);
+                            } else if (typeof fe !== 'undefined' && typeof fe.setValue === 'function') {
+                                fe.setValue(key, data[key]);
+                            }
+                        }
+                        return true;
+                    });
+                } else {
+                    // 备选逻辑，如果storageEvent不可用
+                    for (const key in data) {
+                        if (data.hasOwnProperty(key)) {
+                            if (typeof fe !== 'undefined' && typeof fe.setValue === 'function') {
+                                fe.setValue(key, data[key]);
+                            }
+                        }
+                    }
+
+                    // 如果需要，触发系统的刷新或更新功能
+                    if (typeof fe !== 'undefined' && typeof fe.refresh === 'function') {
+                        fe.refresh();
+                    }
+                }
             },
             showFrame(e, t = !1, o = !0) {
                 const n = rs(),
