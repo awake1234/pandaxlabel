@@ -5700,7 +5700,6 @@ const os = "7.4.4",
 
                 // 准备元数据，增加设备限制
                 const metadata = {
-                    fileId,
                     deviceFingerprint,
                     timestamp,
                     accessCount: 0,
