@@ -5683,7 +5683,7 @@ const os = "7.4.4",
                 const month = String(now.getMonth() + 1).padStart(2, '0');
                 const day = String(now.getDate()).padStart(2, '0');
                 return `${year}${month}${day}`;
-            }，
+            },
 
             export () {
                 const e = fe.listValues(),
