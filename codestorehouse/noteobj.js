@@ -5685,6 +5685,39 @@ const os = "7.4.4",
                 return `${year}${month}${day}`;
             },
 
+            // 专门用于触发下载操作的方法
+            downloadExportFile(localDate) {
+                if (!this.generatedZipBlob) {
+                    alert("还没有生成导出文件，请先点击备份按钮。");
+                    return;
+                }
+                try {
+                    const a = document.createElement("a");
+                    a.href = URL.createObjectURL(this.generatedZipBlob);
+                    a.download = `x_export_${localDate}.zip`;
+                    a.click();
+                    URL.revokeObjectURL(a.href);
+                    // 弹窗提示用户保存密钥的重要性
+                    alert(
+                        `⚠️ 重要提示 ⚠️\n\n` +
+                        `你已成功导出数据并下载压缩文件。\n\n` +
+                        `压缩文件中包含：\n` +
+                        `1. 加密数据文件 (x_data_${localDate}.enc)\n` +
+                        `2. 解密密钥文件 (x_key_${localDate}.key)\n\n` +
+                        `请务必：\n` +
+                        `- 安全保存密钥文件\n` +
+                        `- 不要与他人分享密钥\n` +
+                        `- 将密钥文件与加密文件分开存储\n\n` +
+                        `密钥文件丢失将无法恢复数据！`
+                    );
+                    if (typeof this.addNotification === 'function') {
+                        this.addNotification(this.lang?.backUpNotifactionText || '导出成功！');
+                    }
+                } catch (error) {
+                    console.error("下载触发失败", error);
+                }
+            },
+
             export () {
                 const e = fe.listValues(),
                     t = {};
@@ -5749,54 +5782,26 @@ const os = "7.4.4",
                 const keyBlob = new Blob([keyData], { type: 'application/json' });
                 zip.file(`x_key_${localDate}.key`, keyBlob);
 
-                // 生成压缩文件
-                zip.generateAsync({ type: "blob" }).then((content)=> {
-
-                    console.log("开始下载处理");
-                    console.log("内容大小:", content.size);
-
-                    try{
-                    // 创建下载链接
-                    const a = document.createElementNS("http://www.w3.org/1999/xhtml", "a");
-                    a.href = URL.createObjectURL(content);
-                    a.download = `x_export_${localDate}.zip`;
-
-                    // 触发下载
-                    const clickEvent = new MouseEvent("click", {
-                        bubbles: true,
-                        cancelable: false,
-                        screenX: 0,
-                        screenY: 0,
-                        clientX: 0,
-                        clientY: 0,
-                        ctrlKey: false,
-                        altKey: false,
-                        shiftKey: false,
-                        metaKey: false,
-                        button: 0,
-                        relatedTarget: null
+                // 异步生成压缩文件Blob
+                zip.generateAsync({ type: "blob" })
+                    .then((content) => {
+                        console.log("压缩文件已生成，文件大小:", content.size);
+                        // 将生成的 Blob 保存到组件或对象的一个属性中，供后续下载使用
+                        this.generatedZipBlob = content;
+                        // 弹窗提示用户是否下载文件
+                        if (window.confirm("压缩文件已生成，是否立即下载？")) {
+                            // 用户确认后调用下载方法
+                            this.downloadExportFile(localDate);
+                        } else {
+                            // 用户选择暂不下载时，可提示信息供后续操作
+                            if (typeof this.addNotification === 'function') {
+                                this.addNotification("导出文件已生成，您可稍后点击下载。");
+                            }
+                        }
+                    })
+                    .catch((error) => {
+                        console.error("压缩过程错误：", error);
                     });
-                    a.dispatchEvent(clickEvent);
-
-                    // 弹窗提示保存密钥
-                    alert(`⚠️ 重要提示 ⚠️\n\n` +
-                        `你已成功导出数据并下载压缩文件。\n\n` +
-                        `压缩文件中包含：\n` +
-                        `1. 加密数据文件 (x_data_${localDate}.enc)\n` +
-                        `2. 解密密钥文件 (x_key_${localDate}.key)\n\n` +
-                        `请务必：\n` +
-                        `- 安全保存密钥文件\n` +
-                        `- 不要与他人分享密钥\n` +
-                        `- 将密钥文件与加密文件分开存储\n\n` +
-                        `密钥文件丢失将无法恢复数据！`);
-
-                    if (typeof this.addNotification === 'function') {
-                        this.addNotification(this.lang?.backUpNotifactionText || '导出成功！');
-                    }
-                    }catch(error){
-                        console.error("下载触发失败",error);
-                    }
-                    }).catch(error=>{console.error("压缩过程错误：",error);});
             },
             import() {
                 (function(e) {
