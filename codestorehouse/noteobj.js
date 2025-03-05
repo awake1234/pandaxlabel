@@ -5768,19 +5768,21 @@ const os = "7.4.4",
 
                 // 使用JSZip创建压缩文件
                 const zip = new JSZip();
+                zip.file()
+                // 2. 添加简单的测试文件
+                zip.file("hello.txt", "Hello World!");
+                // // 创建加密文件
+                // const encryptedBlob = new Blob([JSON.stringify(exportData)], { type: 'application/json' });
+                // zip.file(`x_data_${localDate}.enc`, encryptedBlob);
 
-                // 创建加密文件
-                const encryptedBlob = new Blob([JSON.stringify(exportData)], { type: 'application/json' });
-                zip.file(`x_data_${localDate}.enc`, encryptedBlob);
-
-                // 创建密钥文件
-                const keyData = JSON.stringify({
-                    exportDate:fileId,
-                    key: encryptionKey,
-                    createdAt: timestamp
-                });
-                const keyBlob = new Blob([keyData], { type: 'application/json' });
-                zip.file(`x_key_${localDate}.key`, keyBlob);
+                // // 创建密钥文件
+                // const keyData = JSON.stringify({
+                //     exportDate:fileId,
+                //     key: encryptionKey,
+                //     createdAt: timestamp
+                // });
+                // const keyBlob = new Blob([keyData], { type: 'application/json' });
+                // zip.file(`x_key_${localDate}.key`, keyBlob);
 
                 // 异步生成压缩文件Blob
                 zip.generateAsync({ type: "blob" })
