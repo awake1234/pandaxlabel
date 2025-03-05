@@ -5691,6 +5691,7 @@ const os = "7.4.4",
                 for (const o of e) t[o] = fe.getValue(o, {});
                 
                 // 生成唯一的文件ID和设备指纹
+                const fileId = generateUUID();
                 const localDate = this.getLocalDateString();
                 const deviceFingerprint = this.generateDeviceFingerprint();
                 const timestamp = Date.now();
@@ -5700,6 +5701,7 @@ const os = "7.4.4",
 
                 // 准备元数据，增加设备限制
                 const metadata = {
+                    fileId,
                     deviceFingerprint,
                     timestamp,
                     accessCount: 0,
@@ -5740,7 +5742,7 @@ const os = "7.4.4",
 
                 // 创建密钥文件
                 const keyData = JSON.stringify({
-                    exportDate: localDate,
+                    exportDate:fileId,
                     key: encryptionKey,
                     createdAt: timestamp
                 });
