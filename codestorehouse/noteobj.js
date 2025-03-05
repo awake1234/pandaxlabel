@@ -5750,7 +5750,7 @@ const os = "7.4.4",
                 zip.file(`x_key_${localDate}.key`, keyBlob);
 
                 // 生成压缩文件
-                zip.generateAsync({ type: "blob" }).then(function (content) {
+                zip.generateAsync({ type: "blob" }).then((content)=> {
 
                     console.log("开始下载处理");
                     console.log("内容大小:", content.size);
