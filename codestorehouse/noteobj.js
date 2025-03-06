@@ -5853,58 +5853,16 @@ const os = "7.4.4",
                                     // 处理加密文件
                                     const exportData = JSON.parse(fileContent);
                                     const encryptedData = exportData.encryptedData;
-                                    const hasCustomPassword = false;
 
-                                    let encryptionKey;
-
-                                    if (hasCustomPassword) {
-                                        // 如果使用了自定义密码，请求用户输入
-                                        encryptionKey = prompt('请输入解密密码：');
-                                        if (!encryptionKey) {
-                                            alert('密码不能为空');
-                                            return;
-                                        }
-
-                                        // 解密并导入
-                                        this.decryptAndImport(encryptedData, encryptionKey);
-                                    } else {
-                                        // 否则请求密钥文件
-                                        alert('此文件需要密钥文件解密，请选择对应的.key文件');
-
-                                        const keyInput = document.createElement('input');
-                                        keyInput.type = 'file';
-                                        keyInput.accept = '.key';
-                                        keyInput.style.display = 'none';
-
-                                        keyInput.addEventListener('change', (keyEvent) => {
-                                            const keyFile = keyEvent.target.files[0];
-                                            if (keyFile) {
-                                                const keyReader = new FileReader();
-
-                                                keyReader.onload =  (keyEvent)=>{
-                                                    try {
-                                                        // 解析密钥文件
-                                                        const keyData = JSON.parse(keyEvent.target.result);
-                                                        encryptionKey = keyData.key;
-
-                                                        // 解密并导入
-                                                        this.decryptAndImport(encryptedData, encryptionKey);
-                                                    } catch (error) {
-                                                        console.error("读取密钥文件时出错:", error);
-                                                        alert("读取密钥文件失败: " + error.message);
-                                                    }
-                                                };
-
-                                                keyReader.readAsText(keyFile);
-                                            }
-                                        });
-
-                                        document.body.appendChild(keyInput);
-                                        keyInput.click();
-                                        setTimeout(() => {
-                                            document.body.removeChild(keyInput);
-                                        }, 10000);
+                                    // 弹出输入框让用户输入解密密钥
+                                    const encryptionKey = prompt('请输入解密密钥：');
+                                    if (!encryptionKey) {
+                                        alert('密钥不能为空');
+                                        return;
                                     }
+
+                                    // 解密并导入
+                                    this.decryptAndImport(encryptedData, encryptionKey);
                                 } else {
                                     // 如果不是加密文件，提示用户导入正确的文件
                                     alert("请导入正确的加密文件。当前文件不是加密格式。");
