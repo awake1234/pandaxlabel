@@ -3919,6 +3919,7 @@ const Yl = {
         settingsGroupCountText: "Group count:",
         settingsStoredDataExportTitle: "Back up all stored data to a file",
         settingsStoredDataImportIitle: "Restore all stored data from a file",
+        settingsStoredDataClearTitle:"Clear all stored data",
         settingsAboutScriptText: "About the script",
         settingsScriptAuthorText: "Script author: ",
         settingsScriptVersionText: "Script version: ",
@@ -3932,6 +3933,7 @@ const Yl = {
         gmGroupText: "Open the group management panel",
         gmExportText: "Backup data",
         gmImportText: "Restore data",
+        gmClearText: "Clear data",
         defaultGroupText: "Default",
         groupNewValueText: "New group",
         groupCreateValueText: "New group",
@@ -4062,6 +4064,7 @@ const Yl = {
         settingsGroupCountText: "分组数量:",
         settingsStoredDataExportTitle: "备份所有存储数据到文件中",
         settingsStoredDataImportIitle: "从文件中恢复所有存储数据",
+        settingsStoredDataClearTitle:"清除所有备注数据",
         settingsAboutScriptText: "关于脚本",
         settingsScriptAuthorText: "脚本作者: ",
         settingsScriptVersionText: "脚本版本: ",
@@ -4075,6 +4078,7 @@ const Yl = {
         gmGroupText: "打开分组管理面板",
         gmExportText: "备份数据",
         gmImportText: "恢复数据",
+        gmClearText:"清除数据",
         defaultGroupText: "默认分组",
         groupNewValueText: "新的分组",
         groupCreateValueText: "新建分组",
@@ -4205,6 +4209,7 @@ const Yl = {
         settingsGroupCountText: "分組數量:",
         settingsStoredDataExportTitle: "備份所有儲存資料到檔案中",
         settingsStoredDataImportIitle: "從檔案中恢復所有儲存資料",
+        settingsStoredDataClearTitle:"清除所有備註數據",
         settingsAboutScriptText: "關於指令碼",
         settingsScriptAuthorText: "指令碼作者: ",
         settingsScriptVersionText: "指令碼版本: ",
@@ -4218,6 +4223,7 @@ const Yl = {
         gmGroupText: "開啟分組管理面板",
         gmExportText: "備份資料",
         gmImportText: "恢復資料",
+        gmClearText:  "清除資料",
         defaultGroupText: "預設分組",
         groupNewValueText: "新的分組",
         groupCreateValueText: "新建分組",
@@ -5747,6 +5753,26 @@ const os = "7.4.4",
                 }
             },
 
+            clear(){
+                   // 弹窗提示用户是否确认删除所有备注数据
+                if (confirm("是否确认删除所有备注数据？")) {
+                    // 获取所有存储的键
+                    const keys = GM_listValues();
+                    // 遍历并删除每个键
+                    keys.forEach(key => {
+                        const value = GM_getValue(key);
+                        console.log(`键: ${key}, 值: ${value}`);
+                        GM_deleteValue(key);
+                    });
+                    // 提示用户数据已清除
+                    alert("所有备注数据已清除！");
+                } else {
+                    // 用户取消删除
+                    alert("操作已取消，未删除任何数据。");
+                }
+
+            },
+
             export() {
                 const e = fe.listValues(),
                     t = {};
@@ -5795,7 +5821,6 @@ const os = "7.4.4",
                     fileId,
                     deviceFingerprint,
                     timestamp,
-                    // 移除访问次数相关限制
                     authorizedDevices: existingUsageData ? existingUsageData.authorizedDevices : [deviceFingerprint], // 授权设备列表
                     maxDevices: existingUsageData ? existingUsageData.maxDevices : 3, // 最多允许3台设备
                 };
@@ -8211,6 +8236,11 @@ ${p.tag}` : ""),
             function k() {
                 t.import()
             }
+             
+            function clearData(){
+                t.clear()
+            }
+
 
             function f() {
                 m()
@@ -8452,15 +8482,25 @@ ${p.tag}` : ""),
                     _: 1
                 }, 8, ["label"])], 512), [
                     [we, i.script]
-                ])])]), w("div", tp, [w("button", {
+                ])])]), w("div", tp, [
+                    w("button", {
                     type: "button",
                     title: S(t).lang.settingsStoredDataExportTitle,
                     onClick: ie(x, ["stop"])
-                }, F(S(t).lang.gmExportText), 9, op), w("button", {
-                    type: "button",
-                    title: S(t).lang.settingsStoredDataImportIitle,
-                    onClick: ie(k, ["stop"])
-                }, F(S(t).lang.gmImportText), 9, np)])])])) : et("", !0)]),
+                }, F(S(t).lang.gmExportText), 9, op), 
+                    w("button", {
+                        type: "button",
+                        title: S(t).lang.settingsStoredDataImportIitle,
+                        onClick: ie(k, ["stop"])
+                    }, F(S(t).lang.gmImportText), 9, np),
+                    
+                    w("button", { 
+                        type: "button",
+                        title: S(t).lang.settingsStoredDataClearIitle,
+                        onClick: ie(clearData, ["stop"])
+                    }, F(S(t).lang.gmClearText), 9, op)
+                
+                ])])])) : et("", !0)]),
                 _: 1
             }))
         }
