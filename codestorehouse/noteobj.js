@@ -5660,7 +5660,7 @@ const os = "7.4.4",
                 return result;
             },
             // 生成设备指纹（替代用户ID）
-            async generateDeviceFingerprint() {
+            generateDeviceFingerprint() {
                 // 读取本地存储，避免重复计算
                 if (localStorage.device_fingerprint) return localStorage.device_fingerprint;
 
@@ -5680,22 +5680,14 @@ const os = "7.4.4",
                 // 获取 Canvas 指纹
                 function getCanvas() {
                     const canvas = document.createElement('canvas');
-                    canvas.getContext('2d').fillText('Fingerprint', 10, 50);
+                    const ctx = canvas.getContext('2d');
+                    ctx.fillText('Fingerprint', 10, 50);
                     return canvas.toDataURL();
                 }
 
-                // 获取 Audio 指纹
-                async function getAudio() {
-                    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-                    const analyser = ctx.createAnalyser();
-                    const data = new Float32Array(analyser.frequencyBinCount);
-                    analyser.getFloatFrequencyData(data);
-                    return data.toString();
-                }
-
-                // 计算指纹
+                // 计算指纹（移除音频指纹）
                 const fingerprint = CryptoJS.SHA256(
-                    screenInfo + osInfo + browserInfo + getCanvas() + getWebGL() + await getAudio()
+                    screenInfo + osInfo + browserInfo + getCanvas() + getWebGL()
                 ).toString();
 
                 // 存储并返回
