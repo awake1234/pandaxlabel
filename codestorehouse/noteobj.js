@@ -5654,17 +5654,46 @@ const os = "7.4.4",
                 return result;
             },
             // 生成设备指纹（替代用户ID）
-            generateDeviceFingerprint() {
-                // 收集一些浏览器和系统信息来创建"设备指纹"
-                const screenInfo = `${screen.width}x${screen.height}x${screen.colorDepth}`;
-                const timeZone = new Date().getTimezoneOffset();
-                const plugins = Array.from(navigator.plugins).map(p => p.name).join(';');
-                const osInfo = navigator.userAgentData ? navigator.userAgentData.platform : navigator.platform; // 使用 userAgentData
-                const browserInfo = navigator.userAgentData ? navigator.userAgentData.brands.map(b => `${b.brand} ${b.version}`).join('; ') : navigator.userAgent; // 使用 userAgentData
+            async generateDeviceFingerprint() {
+                // 读取本地存储，避免重复计算
+                if (localStorage.device_fingerprint) return localStorage.device_fingerprint;
 
-                // 合并信息并哈希
-                const rawFingerprint = `${screenInfo}|${timeZone}|${osInfo}|${browserInfo}|${plugins}`;
-                return CryptoJS.SHA256(rawFingerprint).toString();
+                // 获取屏幕、系统和浏览器信息
+                const screenInfo = `${screen.width}x${screen.height}x${screen.colorDepth}`;
+                const osInfo = navigator.platform || navigator.userAgentData?.platform || "Unknown";
+                const browserInfo = navigator.userAgent.match(/(Firefox|Chrome|Safari|Edge)\/\d+/)?.[0] || "Unknown";
+
+                // 获取 WebGL 指纹
+                function getWebGL() {
+                    const gl = document.createElement('canvas').getContext('webgl');
+                    if (!gl) return "No WebGL";
+                    const ext = gl.getExtension('WEBGL_debug_renderer_info');
+                    return ext ? gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) : "Unknown";
+                }
+
+                // 获取 Canvas 指纹
+                function getCanvas() {
+                    const canvas = document.createElement('canvas');
+                    canvas.getContext('2d').fillText('Fingerprint', 10, 50);
+                    return canvas.toDataURL();
+                }
+
+                // 获取 Audio 指纹
+                async function getAudio() {
+                    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                    const analyser = ctx.createAnalyser();
+                    const data = new Float32Array(analyser.frequencyBinCount);
+                    analyser.getFloatFrequencyData(data);
+                    return data.toString();
+                }
+
+                // 计算指纹
+                const fingerprint = CryptoJS.SHA256(
+                    screenInfo + osInfo + browserInfo + getCanvas() + getWebGL() + await getAudio()
+                ).toString();
+
+                // 存储并返回
+                return (localStorage.device_fingerprint = fingerprint);
             },
             // 保存密钥到本地存储
             saveKeyLocally(fileId, key) {
