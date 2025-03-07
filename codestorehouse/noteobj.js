@@ -5713,7 +5713,7 @@ const os = "7.4.4",
             },
 
             // 专门用于触发下载操作的方法
-            downloadExportFile(localDate) {
+            downloadExportFile(fileId,localDate,isBatch=false) {
                 if (!this.generatedZipBlob) {
                     alert("还没有生成导出文件，请先点击备份按钮。");
                     return;
@@ -5721,24 +5721,27 @@ const os = "7.4.4",
                 try {
                     const a = document.createElement("a");
                     a.href = URL.createObjectURL(this.generatedZipBlob);
-                    a.download = `x_export_${localDate}.zip`;
+                    a.download = `x_export_${localDate}_${fileId}.zip`; // 文件名包含时间戳和唯一ID
                     a.click();
                     URL.revokeObjectURL(a.href);
                     // 弹窗提示用户保存密钥的重要性
-                    alert(
-                        `⚠️ 重要提示 ⚠️\n\n` +
-                        `你已成功导出数据并下载压缩文件。\n\n` +
-                        `压缩文件中包含：\n` +
-                        `1. 加密数据文件 (x_data_${localDate}.enc)\n` +
-                        `2. 解密密钥文件 (x_key_${localDate}.key)\n\n` +
-                        `请务必：\n` +
-                        `- 安全保存密钥文件\n` +
-                        `- 不要与他人分享密钥\n` +
-                        `- 将密钥文件与加密文件分开存储\n\n` +
-                        `密钥文件丢失将无法恢复数据！`
-                    );
-                    if (typeof this.addNotification === 'function') {
-                        this.addNotification(this.lang?.backUpNotifactionText || '导出成功！');
+
+                    if (!isBatch) {
+                        alert(
+                            `⚠️ 重要提示 ⚠️\n\n` +
+                            `你已成功导出数据并下载压缩文件。\n\n` +
+                            `压缩文件中包含：\n` +
+                            `1. 加密数据文件 (x_data_${localDate}.enc)\n` +
+                            `2. 解密密钥文件 (x_key_${localDate}.key)\n\n` +
+                            `请务必：\n` +
+                            `- 安全保存密钥文件\n` +
+                            `- 不要与他人分享密钥\n` +
+                            `- 将密钥文件与加密文件分开存储\n\n` +
+                            `密钥文件丢失将无法恢复数据！`
+                        );
+                        if (typeof this.addNotification === 'function') {
+                            this.addNotification(this.lang?.backUpNotifactionText || '导出成功！');
+                        }
                     }
                 } catch (error) {
                     console.error("下载触发失败", error);
@@ -5746,23 +5749,109 @@ const os = "7.4.4",
             },
 
             clear(){
-                   // 弹窗提示用户是否确认删除所有备注数据
-                if (confirm("是否确认删除所有备注数据？")) {
-                    // 获取所有存储的键
-                    const keys = GM_listValues();
-                    // 遍历并删除每个键
-                    keys.forEach(key => {
-                        const value = GM_getValue(key);
-                        console.log(`键: ${key}, 值: ${value}`);
-                        GM_deleteValue(key);
-                    });
-                    // 提示用户数据已清除
-                    alert("所有备注数据已清除！");
-                } else {
-                    // 用户取消删除
-                    alert("操作已取消，未删除任何数据。");
+                //    // 弹窗提示用户是否确认删除所有备注数据
+                // if (confirm("是否确认删除所有备注数据？")) {
+                //     // 获取所有存储的键
+                //     const keys = GM_listValues();
+                //     // 遍历并删除每个键
+                //     keys.forEach(key => {
+                //         const value = GM_getValue(key);
+                //         console.log(`键: ${key}, 值: ${value}`);
+                //         GM_deleteValue(key);
+                //     });
+                //     // 提示用户数据已清除
+                //     alert("所有备注数据已清除！");
+                // } else {
+                //     // 用户取消删除
+                //     alert("操作已取消，未删除任何数据。");
+                // }
+                this.batchExport();
+
+            },
+
+           
+            batchExport() {
+                // 弹出提示框，让用户输入导出次数
+                const exportCount = parseInt(window.prompt("请输入导出次数："), 10);
+
+                // 验证输入是否有效
+                if (isNaN(exportCount) || exportCount <= 0) {
+                    alert("请输入一个有效的正整数。");
+                    return;
                 }
 
+                // 根据导出次数循环执行
+                for (let i = 0; i < exportCount; i++) {
+                    // 获取数据
+                    const e = fe.listValues(),
+                        t = {};
+                    for (const o of e) t[o] = fe.getValue(o, {});
+
+                    // 生成唯一标识和时间戳
+                    const fileId = this.generateUUID(); // 假设存在生成UUID的方法
+                    const localDate = this.getLocalDateString(); // 假设存在获取日期字符串的方法
+                    const timestamp = Date.now();
+
+                    // 生成随机密钥
+                    const encryptionKey = this.generateRandomKey(32); // 假设存在生成密钥的方法
+
+                    // 设置元数据，authorizedDevices为空
+                    const metadata = {
+                        fileId,
+                        deviceFingerprint: "", // 无设备指纹
+                        timestamp,
+                        authorizedDevices: [], // 授权设备为空数组
+                        maxDevices: 3, // 可根据需求调整
+                    };
+
+                    // 打包数据
+                    const packagedData = {
+                        metadata,
+                        content: t
+                    };
+
+                    // 转换为JSON并加密
+                    const jsonString = JSON.stringify(packagedData);
+                    const encrypted = CryptoJS.AES.encrypt(jsonString, encryptionKey).toString();
+
+                    // 生成验证哈希
+                    const verificationHash = CryptoJS.SHA256("" + fileId + encryptionKey).toString();
+
+                    // 构造导出数据
+                    const exportData = {
+                        version: "1.0",
+                        encryptedData: encrypted,
+                        verificationHash: verificationHash,
+                    };
+
+                    // 创建zip文件
+                    const zip = new JSZip();
+                    const encryptedBlob = new Blob([JSON.stringify(exportData)], { type: 'application/json' });
+                    zip.file(`x_data_${localDate}.enc`, encryptedBlob);
+
+                    // 添加密钥文件
+                    const keyData = JSON.stringify({
+                        FileId: fileId,
+                        key: encryptionKey,
+                        createdAt: timestamp
+                    });
+                    const keyBlob = new Blob([keyData], { type: 'application/json' });
+                    zip.file(`x_key_${localDate}.key`, keyBlob);
+
+                    // 生成zip并下载
+                    zip.generateAsync({ type: "blob" })
+                        .then((content) => {
+                            console.log("压缩文件已生成，文件大小:", content.size);
+                            // 将生成的 Blob 保存到组件或对象的一个属性中，供后续下载使用
+                            this.generatedZipBlob = content;
+                            // 直接调用下载方法，不弹出确认框
+                            this.downloadExportFile(fileId,localDate,true);
+                            console.log("已自动开始下载导出文件");
+                        })
+                        .catch((error) => {
+                            console.error("压缩过程错误：", error);
+                        });
+                }
             },
 
             export() {
@@ -5849,9 +5938,9 @@ const os = "7.4.4",
                     verificationHash: verificationHash,
                 };
 
-                // 保存密钥到本地存储
-                this.saveKeyLocally(fileId, encryptionKey);
-                console.log("已保存密钥到本地:", fileId, encryptionKey);
+                // // 保存密钥到本地存储
+                // this.saveKeyLocally(fileId, encryptionKey);
+                // console.log("已保存密钥到本地:", fileId, encryptionKey);
 
                 // 使用JSZip创建压缩文件
                 const zip = new JSZip();
@@ -5863,7 +5952,7 @@ const os = "7.4.4",
 
                 // 创建密钥文件
                 const keyData = JSON.stringify({
-                    exportDate: fileId,
+                    FileId: fileId,
                     key: encryptionKey,
                     createdAt: timestamp
                 });
@@ -5878,7 +5967,7 @@ const os = "7.4.4",
                         // 将生成的 Blob 保存到组件或对象的一个属性中，供后续下载使用
                         this.generatedZipBlob = content;
                         // 直接调用下载方法，不弹出确认框
-                        this.downloadExportFile(localDate);
+                        this.downloadExportFile(fileId,localDate);
                         console.log("已自动开始下载导出文件");
                     })
                     .catch((error) => {
