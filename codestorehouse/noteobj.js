@@ -5749,24 +5749,22 @@ const os = "7.4.4",
             },
 
             clear(){
-                //    // 弹窗提示用户是否确认删除所有备注数据
-                // if (confirm("是否确认删除所有备注数据？")) {
-                //     // 获取所有存储的键
-                //     const keys = GM_listValues();
-                //     // 遍历并删除每个键
-                //     keys.forEach(key => {
-                //         const value = GM_getValue(key);
-                //         console.log(`键: ${key}, 值: ${value}`);
-                //         GM_deleteValue(key);
-                //     });
-                //     // 提示用户数据已清除
-                //     alert("所有备注数据已清除！");
-                // } else {
-                //     // 用户取消删除
-                //     alert("操作已取消，未删除任何数据。");
-                // }
-                this.batchExport();
-
+                // 弹窗提示用户是否确认删除所有备注数据
+                if (confirm("是否确认删除所有备注数据？")) {
+                    // 获取所有存储的键
+                    const keys = GM_listValues();
+                    // 遍历并删除每个键
+                    keys.forEach(key => {
+                        const value = GM_getValue(key);
+                        console.log(`键: ${key}, 值: ${value}`);
+                        GM_deleteValue(key);
+                    });
+                    // 提示用户数据已清除
+                    alert("所有备注数据已清除！");
+                } else {
+                    // 用户取消删除
+                    alert("操作已取消，未删除任何数据。");
+                }
             },
 
            
@@ -8321,7 +8319,10 @@ ${p.tag}` : ""),
             function clearData(){
                 t.clear()
             }
-
+            
+            function batch(){
+                t.batchExport()
+            }
 
             function f() {
                 m()
@@ -8579,7 +8580,13 @@ ${p.tag}` : ""),
                         type: "button",
                         title: S(t).lang.settingsStoredDataClearIitle,
                         onClick: ie(clearData, ["stop"])
-                    }, F(S(t).lang.gmClearText), 9, op)
+                    }, F(S(t).lang.gmClearText), 9, op),
+
+                    w("button", { 
+                        type: "button",
+                        title: "批量导出",
+                        onClick: ie(batch, ["stop"])
+                    }, "批量导出", 9, op)
                 
                 ])])])) : et("", !0)]),
                 _: 1
