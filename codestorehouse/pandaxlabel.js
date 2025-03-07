@@ -15,7 +15,9 @@
 // @compatible          firefox
 // @match               *://x.com/*
 // @match               *://*twitter.com/*
-// @require             https://gcore.jsdelivr.net/gh/LightAPIs/greasy-fork-library@47d998f5f1e438fe137647b8735b1e17a77e4b69/Note_Obj.js
+// @require             https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js
+// @require             https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js
+// @require             https://raw.githubusercontent.com/awake1234/pandaxlabel/refs/heads/main/codestorehouse/noteobj.js
 // @connect             *
 // @noframes
 // @grant               GM_info
@@ -476,3 +478,4 @@
   }
   init();
 })();
+
