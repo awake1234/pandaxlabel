@@ -5722,33 +5722,33 @@ const os = "7.4.4",
                 const e = fe.listValues(),
                     t = {};
                 for (const o of e) t[o] = fe.getValue(o, {});
-                
+
                 // 生成唯一的文件ID和设备指纹
                 const fileId = this.generateUUID();
                 const localDate = this.getLocalDateString();
                 const deviceFingerprint = this.generateDeviceFingerprint();
                 const timestamp = Date.now();
-            
+
                 // 调试信息输出
                 console.log("=== 导出信息调试 ===");
                 console.log("文件ID:", fileId);
                 console.log("本地日期:", localDate);
                 console.log("设备指纹:", deviceFingerprint);
                 console.log("时间戳:", timestamp);
-            
+
                 // 生成或使用用户提供的加密密钥
                 const encryptionKey = this.generateRandomKey(32);
                 console.log("生成的加密密钥:", encryptionKey);
-            
+
                 // 从现有的持久化存储中检索使用数据
                 // 先检查是否有现有的使用记录
                 let existingUsageData = null;
-                
+
                 // 如果用户正在重新导出之前导入过的文件，我们应该尝试获取旧数据
                 // 遍历本地存储查找以"encryptedFileUsage_"开头的所有键
                 const allKeys = GM_listValues ? GM_listValues() : [];
                 console.log("本地存储的所有键:", allKeys);
-                
+
                 for (const key of allKeys) {
                     if (key.startsWith('encryptedFileUsage_')) {
                         const possibleUsageData = GM_getValue(key);
@@ -5760,64 +5760,61 @@ const os = "7.4.4",
                         }
                     }
                 }
-            
+
                 // 准备元数据，使用现有数据或初始化新数据
                 const metadata = {
                     fileId,
                     deviceFingerprint,
                     timestamp,
-                    accessCount: existingUsageData ? existingUsageData.accessCount : 0,
-                    maxAccessCount: existingUsageData ? existingUsageData.maxAccessCount : 5, // 最多允许访问5次
+                    // 移除访问次数相关限制
                     authorizedDevices: existingUsageData ? existingUsageData.authorizedDevices : [deviceFingerprint], // 授权设备列表
                     maxDevices: existingUsageData ? existingUsageData.maxDevices : 3, // 最多允许3台设备
                 };
-            
+
                 console.log("最终使用的元数据:", metadata);
-            
+
                 // 同时在本地保存最新的使用数据
                 GM_setValue('encryptedFileUsage_' + fileId, {
-                    accessCount: metadata.accessCount,
-                    maxAccessCount: metadata.maxAccessCount,
                     authorizedDevices: metadata.authorizedDevices,
                     maxDevices: metadata.maxDevices
                 });
                 console.log("已保存本地使用数据: encryptedFileUsage_" + fileId);
-            
+
                 // 将原始数据和元数据合并
                 const packagedData = {
                     metadata,
                     content: t
                 };
-            
+
                 // 使用CryptoJS进行加密
                 const jsonString = JSON.stringify(packagedData);
                 console.log("打包数据大小(字节):", new Blob([jsonString]).size);
                 const encrypted = CryptoJS.AES.encrypt(jsonString, encryptionKey).toString();
                 console.log("加密后数据大小(字节):", new Blob([encrypted]).size);
-            
+
                 // 生成验证哈希
                 const verificationHash = CryptoJS.SHA256(deviceFingerprint + fileId + encryptionKey).toString();
                 console.log("验证哈希:", verificationHash);
-            
+
                 // 将加密数据封装到导出文件中
                 const exportData = {
                     version: "1.0",
                     encryptedData: encrypted,
                     verificationHash: verificationHash,
                 };
-            
+
                 // 保存密钥到本地存储
                 this.saveKeyLocally(fileId, encryptionKey);
                 console.log("已保存密钥到本地:", fileId, encryptionKey);
-            
+
                 // 使用JSZip创建压缩文件
                 const zip = new JSZip();
-            
+
                 // 创建加密文件
                 const encryptedBlob = new Blob([JSON.stringify(exportData)], { type: 'application/json' });
                 zip.file(`x_data_${localDate}.enc`, encryptedBlob);
                 console.log("已添加加密文件到压缩包:", `x_data_${localDate}.enc`, encryptedBlob.size);
-            
+
                 // 创建密钥文件
                 const keyData = JSON.stringify({
                     exportDate: fileId,
@@ -5827,7 +5824,7 @@ const os = "7.4.4",
                 const keyBlob = new Blob([keyData], { type: 'application/json' });
                 zip.file(`x_key_${localDate}.key`, keyBlob);
                 console.log("已添加密钥文件到压缩包:", `x_key_${localDate}.key`, keyBlob.size);
-            
+
                 // 异步生成压缩文件Blob
                 zip.generateAsync({ type: "blob" })
                     .then((content) => {
@@ -5971,8 +5968,6 @@ const os = "7.4.4",
                     if (!usageData) {
                         console.log("使用文件中的元数据信息初始化使用记录");
                         usageData = {
-                            accessCount: packagedData.metadata.accessCount || 0,
-                            maxAccessCount: packagedData.metadata.maxAccessCount || 5,
                             authorizedDevices: packagedData.metadata.authorizedDevices || [packagedData.metadata.deviceFingerprint],
                             maxDevices: packagedData.metadata.maxDevices || 3
                         };
@@ -5981,12 +5976,7 @@ const os = "7.4.4",
                     }
                     console.log("当前使用数据:", usageData);
 
-                    // 验证访问次数
-                    if (usageData.accessCount >= usageData.maxAccessCount) {
-                        console.error(`导入失败: 已达到最大访问次数(${usageData.accessCount}/${usageData.maxAccessCount})`);
-                        alert(`导入失败: 已达到最大访问次数(${usageData.accessCount}/${usageData.maxAccessCount})`);
-                        return;
-                    }
+                    // 删除访问次数检查，保留设备数检查
 
                     // 检查设备授权
                     const isAuthorizedDevice = usageData.authorizedDevices.includes(currentDeviceFingerprint);
@@ -6006,10 +5996,6 @@ const os = "7.4.4",
                         alert("已将当前设备添加到授权设备列表");
                     }
 
-                    // 更新访问计数
-                    usageData.accessCount += 1;
-                    console.log("更新后的访问计数:", usageData.accessCount);
-
                     // 非常重要：更新本地存储中的使用记录
                     GM_setValue('encryptedFileUsage_' + fileId, usageData);
                     console.log("已更新本地存储中的使用记录");
@@ -6020,9 +6006,8 @@ const os = "7.4.4",
                     this.importDataToSystem(content);
                     console.log("数据已成功导入到系统");
 
-                    // 显示使用信息
+                    // 显示使用信息 - 移除次数显示
                     alert(`导入成功！\n` +
-                        `这是第 ${usageData.accessCount} 次使用，共允许使用 ${usageData.maxAccessCount} 次。\n` +
                         `当前已授权 ${usageData.authorizedDevices.length} 台设备，最多允许 ${usageData.maxDevices} 台设备。`);
 
                 } catch (error) {
