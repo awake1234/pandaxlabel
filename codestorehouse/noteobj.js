@@ -9261,15 +9261,23 @@ const It = class It {
             after: s,
             before: l,
             className: u = [],
-            restore: c
+            restore: c,
+            customElement:ce = false
         } = r;
         let p = o;
         if (n && (p = this.fn.query(o, n, "warn")), p)
             if (a) {
                 const b = this.fn.query(p, "." + It.tagClassName, "none");
                 if (b && b.remove(), !c) {
-                    const h = this.createNoteTag(t, r, a, u, i);
-                    h && (s ? s.after(h) : l ? l.before(h) : p.appendChild(h))
+                    let h;
+                    if (ce) {
+                        // 如果 customElement 为 true，调用 createAnalyticsBox
+                        h = this.createAnalyticsBox(t, r, i);
+                    } else {
+                        // 默认使用 createNoteTag 创建标签
+                        h = this.createNoteTag(t, r, a, u, i);
+                    }
+                    h && (s ? s.after(h) : l ? l.before(h) : p.appendChild(h));
                 }
             } else c ? this.restoreElement(p, t, r) : this.updateElement(p, t, r, i)
     }
@@ -9318,6 +9326,44 @@ const It = class It {
             this.store.hidePopover()
         }), c.length > 0 && t.classList.add(...c), this.store.updateUserName(o, r))
     }
+
+    createAnalyticsBox(t, o = {}, i) {
+        const analyticsData = {
+            nameChanges: "改名（2）",      // 当前第 2 次名称更改，总共 5 次
+            pumpCount: "发盘（0）",       // 当前 3 次“泵”活动，总共 10 次
+            deletedTweets: "删帖（0）" // 删除了 15 条推文
+        }
+    
+        const box = document.createElement('div');
+        box.className = 'note-analytics-box';
+        box.setAttribute('data-usernames', i || '');
+        box.setAttribute('data-user-id', t);
+    
+        const nameChangesSpan = document.createElement('span');
+        nameChangesSpan.className = 'analytics-item';
+        nameChangesSpan.setAttribute('data-type', 'nameChanges');
+        nameChangesSpan.style.cursor = 'pointer';
+        nameChangesSpan.textContent = analyticsData.nameChanges;
+    
+        const pumpCountSpan = document.createElement('span');
+        pumpCountSpan.className = 'analytics-item';
+        pumpCountSpan.setAttribute('data-type', 'pumpCount');
+        pumpCountSpan.style.cursor = 'pointer';
+        pumpCountSpan.textContent = analyticsData.pumpCount;
+    
+        const deletedTweetsSpan = document.createElement('span');
+        deletedTweetsSpan.className = 'analytics-item';
+        deletedTweetsSpan.setAttribute('data-type', 'deletedTweets');
+        deletedTweetsSpan.style.cursor = 'pointer';
+        deletedTweetsSpan.textContent = analyticsData.deletedTweets;
+    
+        box.appendChild(nameChangesSpan);
+        box.appendChild(pumpCountSpan);
+        box.appendChild(deletedTweetsSpan);
+
+        return box;
+    }
+
     createNoteTag(t, o = {}, n = "span", r = [], i) {
         const {
             maskPrimaryColor: a,
