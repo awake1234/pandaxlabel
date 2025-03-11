@@ -350,12 +350,16 @@
         className: [nameSet.blueTag]
       }, eleName);
       
-      // 插入 twitter-analytics-box
-      noteObj.handler(eleId, ele, selector.userpage.showName, {
-        add: 'div', // 确保 add 参数兼容
-        after: noteObj.fn.query(ele, selector.userpage.showName), // 插入到用户名后面
-        customElement: true
-    }, eleName);
+      // 获取刚插入的 blueTag 元素作为 after 目标
+      const blueTagElement = noteObj.fn.query(ele, `.${nameSet.blueTag}`);
+      if (blueTagElement) {
+        // 插入 note-analytics-box 在 blueTag 后面
+        noteObj.handler(eleId, ele, selector.userpage.showName, {
+          add: 'div',
+          after: blueTagElement,
+          customElement: true
+        }, eleName);
+      }
 
     }
   }

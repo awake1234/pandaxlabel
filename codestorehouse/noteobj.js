@@ -9262,24 +9262,29 @@ const It = class It {
             before: l,
             className: u = [],
             restore: c,
-            customElement:ce = false
+            customElement: ce = false
         } = r;
         let p = o;
-        if (n && (p = this.fn.query(o, n, "warn")), p)
+        if (n && (p = this.fn.query(o, n, "warn")), p) {
             if (a) {
-                const b = this.fn.query(p, "." + It.tagClassName, "none");
-                if (b && b.remove(), !c) {
+                // 仅在插入 note-obj-twitter-blue-tag 时移除旧的 blueTag
+                if (!ce) {
+                    const b = this.fn.query(p, "." + It.tagClassName, "none");
+                    b && b.remove();
+                }
+                if (!c) {
                     let h;
                     if (ce) {
-                        // 如果 customElement 为 true，调用 createAnalyticsBox
                         h = this.createAnalyticsBox(t, r, i);
                     } else {
-                        // 默认使用 createNoteTag 创建标签
                         h = this.createNoteTag(t, r, a, u, i);
                     }
                     h && (s ? s.after(h) : l ? l.before(h) : p.appendChild(h));
                 }
-            } else c ? this.restoreElement(p, t, r) : this.updateElement(p, t, r, i)
+            } else {
+                c ? this.restoreElement(p, t, r) : this.updateElement(p, t, r, i);
+            }
+        }
     }
     arrive(t, o, n, r) {
         let i;
