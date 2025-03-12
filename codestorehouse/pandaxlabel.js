@@ -61,7 +61,8 @@
       main: '.css-175oi2r.r-ttdzmv.r-1ifxtd0',
       id: '[data-testid="UserName"] div[tabindex] div[dir] > span',
       showName: '[data-testid="UserName"] div[dir] > span',
-      follow: '.css-175oi2r.r-obd0qt.r-18u37iz.r-1w6e6rj.r-1h0z5md.r-dnmrzs'
+      follow: '.css-175oi2r.r-obd0qt.r-18u37iz.r-1w6e6rj.r-1h0z5md.r-dnmrzs',
+      idcard: '.css-175oi2r.r-ezqdr.r-1wbh5a2.r-1wron08'
     },
     comment: {
       toolBar: '[tabindex="-1"]:scope [role="group"][id]'
@@ -350,13 +351,13 @@
         className: [nameSet.blueTag]
       }, eleName);
       
-      // 获取刚插入的 blueTag 元素作为 after 目标
-      const blueTagElement = noteObj.fn.query(ele, `.${nameSet.blueTag}`);
-      if (blueTagElement) {
+      //查找目标 div 并插入 twitter-analytics-box
+      const idcardDiv = noteObj.fn.query(ele,selector.userpage.idcard);
+      if (idcardDiv) {
         // 插入 note-analytics-box 在 blueTag 后面
         noteObj.handler(eleId, ele, selector.userpage.showName, {
           add: 'div',
-          after: blueTagElement,
+          after: idcardDiv,
           customElement: true
         }, eleName);
       }

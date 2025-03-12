@@ -9338,6 +9338,15 @@ const It = class It {
             pumpCount: "发盘（0）",       // 当前 3 次“泵”活动，总共 10 次
             deletedTweets: "删帖（0）" // 删除了 15 条推文
         }
+
+        // 创建 DocumentFragment 作为临时容器
+        const fragment = document.createDocumentFragment();
+
+        // 创建前置的 div 元素
+        const prefixDiv = document.createElement('div');
+        prefixDiv.className = 'css-175oi2r';
+        fragment.appendChild(prefixDiv);
+
     
         const box = document.createElement('div');
         box.className = 'note-analytics-box';
@@ -9365,8 +9374,11 @@ const It = class It {
         box.appendChild(nameChangesSpan);
         box.appendChild(pumpCountSpan);
         box.appendChild(deletedTweetsSpan);
+        
+        // 将 twitter-analytics-box 添加到 fragment 中
+        fragment.appendChild(box);
 
-        return box;
+        return fragment;
     }
 
     createNoteTag(t, o = {}, n = "span", r = [], i) {
