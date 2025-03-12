@@ -5577,6 +5577,102 @@ const os = "7.4.4",
                 const o = this.getUserGroupKey(e);
                 return o !== "default" && this.group[o] && (t = this.group[o].value), t
             },
+
+            // 读取 analyticsdata 的功能，添加参数 e 表示查询的用户 ID
+            readAnalyticsData(e) {
+                console.log(`readAnalyticsData called with user ID: ${e}`);
+                const items = this.items;
+
+                if (e && this.judgeUsers(e)) {
+                    const userItem = items[e];
+                    if (userItem.tag && this.isTagValid(userItem.tag)) {
+                        console.log(`User ${e} has valid tag, processing all data.`);
+                        for (const key in items) {
+                            const item = items[key];
+                            if (item.tag && this.isTagValid(item.tag)) {
+                                this.splitTagIntoFields(item);
+                            }
+                        }
+                    } else {
+                        console.log(`User ${e} tag is invalid or already processed, no action taken.`);
+                    }
+                }
+            },
+
+            isTagValid(tag) {
+                if (typeof tag !== "string") {
+                    return false;
+                }
+                const regex = /^头衔\d+_改名\d+_发盘\d+_删推\d+_聪明钱\d+$/;
+                return regex.test(tag);
+            },
+            
+
+            // 分割 tag 字段，仅保留头衔部分，并覆盖原始 tag 字段
+            splitTagIntoFields(item) {
+                console.log(`Processing item: ${item.name}`);
+                if (!item.tag || !this.isTagValid(item.tag)) {
+                    console.log(`Item ${item.name} has invalid tag: ${item.tag}, skipping.`);
+                    return;
+                }
+
+                const tagParts = item.tag.split("_");
+                let newTag = "";
+                const fields = {};
+
+                tagParts.forEach(part => {
+                    if (part.startsWith("头衔")) {
+                        newTag = part.replace("头衔", "");
+                    } else if (part.startsWith("改名")) {
+                        fields.nameChanges = parseInt(part.replace("改名", ""), 10) || 0;
+                    } else if (part.startsWith("发盘")) {
+                        fields.pumpCount = parseInt(part.replace("发盘", ""), 10) || 0;
+                    } else if (part.startsWith("删推")) {
+                        fields.deletedTweets = parseInt(part.replace("删推", ""), 10) || 0;
+                    } else if (part.startsWith("聪明钱")) {
+                        fields.smartMoney = parseInt(part.replace("聪明钱", ""), 10) || 0;
+                    }
+                });
+
+                if (newTag) {
+                    item.tag = newTag;
+                } else {
+                    console.log(`No "头衔" found in tag for item ${item.name}, tag remains unchanged.`);
+                }
+                Object.assign(item, fields);
+
+                this.storageEvent(() => {
+                    fe.setValue(this.itemsKeyName, this.items);
+                    this.writeModificationTime();
+                    return true;
+                }, item.name);
+            },
+
+            // 获取某个用户的 analyticsdata
+            getAnalyticsData(e) {
+                // 确保已经执行过 readAnalyticsData
+                this.readAnalyticsData(e);
+
+                // 检查用户是否存在
+                if (this.judgeUsers(e)) {
+                    const item = this.items[e];
+                    return {
+                        nameChanges: item.nameChanges || 0,
+                        pumpCount: item.pumpCount || 0,
+                        deletedTweets: item.deletedTweets || 0,
+                        smartMoney: item.smartMoney || 0
+                    };
+                }
+
+                // 如果用户不存在，返回默认值
+                return {
+                    nameChanges: 0,
+                    pumpCount: 0,
+                    deletedTweets: 0,
+                    smartMoney: 0
+                };
+            },
+
             getUserTag(e, t = {}) {
                 const {
                     maskGroup: o

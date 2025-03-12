@@ -211,7 +211,7 @@
       vertical-align: middle;
       color: #3c81df;
       gap: 8px;
-      padding: 2px 8px;  
+      padding: 2px 4px;  
     }
     ${selector.homepage.showName}, ${selector.modal.showName} {
       white-space: normal;
