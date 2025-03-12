@@ -62,7 +62,7 @@
       id: '[data-testid="UserName"] div[tabindex] div[dir] > span',
       showName: '[data-testid="UserName"] div[dir] > span',
       follow: '.css-175oi2r.r-obd0qt.r-18u37iz.r-1w6e6rj.r-1h0z5md.r-dnmrzs',
-      idcard: '.css-175oi2r.r-ezqdr.r-1wbh5a2.r-1wron08'
+      idcard: '.css-175oi2r.r-eqz5dr.r-1wbh5a2.r-1wron08'
     },
     comment: {
       toolBar: '[tabindex="-1"]:scope [role="group"][id]'
@@ -95,7 +95,8 @@
     panelBtn: 'note-obj-twitter-panel-btn',
     beforeFollowNoteBtn: 'note-obj-twitter-before-follow-note-btn',
     baseToolBarBtn: 'note-obj-twitter-base-tool-bar-btn',
-    commentToolBarBtn: 'note-obj-twitter-comment-tool-bar-btn'
+    commentToolBarBtn: 'note-obj-twitter-comment-tool-bar-btn',
+    noteAnalyticsBox:'note-analytics-box',
   };
   const style = `
     .${nameSet.blueTag} {
@@ -200,6 +201,17 @@
       top: 3px;
       right: -2px;
       border-radius: 99px;
+    }
+
+    .${nameSet.noteAnalyticsBox}{
+      display: inline-flex;
+      margin-left: 8px;
+      font-size: 16px;
+      align-items: center;
+      vertical-align: middle;
+      color: #3c81df;
+      gap: 8px;
+      padding: 2px 8px;  
     }
     ${selector.homepage.showName}, ${selector.modal.showName} {
       white-space: normal;

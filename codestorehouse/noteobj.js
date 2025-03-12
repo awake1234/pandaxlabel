@@ -9334,9 +9334,9 @@ const It = class It {
 
     createAnalyticsBox(t, o = {}, i) {
         const analyticsData = {
-            nameChanges: "改名（2）",      // 当前第 2 次名称更改，总共 5 次
-            pumpCount: "发盘（0）",       // 当前 3 次“泵”活动，总共 10 次
-            deletedTweets: "删帖（0）" // 删除了 15 条推文
+            nameChanges: "改名(2)",      // 当前第 2 次名称更改，总共 5 次
+            pumpCount: "发盘(0)",       // 当前 3 次“泵”活动，总共 10 次
+            deletedTweets: "删帖(0)" // 删除了 15 条推文
         }
 
         // 创建 DocumentFragment 作为临时容器
