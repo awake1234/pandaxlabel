@@ -5585,7 +5585,7 @@ const os = "7.4.4",
 
                 if (e && this.judgeUsers(e)) {
                     const userItem = items[e];
-                    if (userItem.tag && this.isTagValid(userItem.tag)) {
+                    if (userItem.tag) {
                         console.log(`User ${e} has valid tag, processing all data.`);
                         for (const key in items) {
                             const item = items[key];
@@ -5593,6 +5593,7 @@ const os = "7.4.4",
                                 this.splitTagIntoFields(item);
                             }
                         }
+                        console.log("all user tag has been splited");
                     } else {
                         console.log(`User ${e} tag is invalid or already processed, no action taken.`);
                     }
