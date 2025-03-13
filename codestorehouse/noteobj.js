@@ -5603,7 +5603,7 @@ const os = "7.4.4",
                 if (typeof tag !== "string") {
                     return false;
                 }
-                const regex = /^头衔\d+_改名\d+_发盘\d+_删推\d+_聪明钱\d+$/;
+                const regex = /^头衔.+_改名\d+_发盘\d+_删推\d+_聪明钱\d+$/;
                 return regex.test(tag);
             },
             
