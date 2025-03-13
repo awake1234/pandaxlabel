@@ -5585,7 +5585,7 @@ const os = "7.4.4",
 
                 if (e && this.judgeUsers(e)) {
                     const userItem = items[e];
-                    if (userItem.tag) {
+                    if (userItem.tag && this.isTagValid(userItem.tag)) {
                         console.log(`User ${e} has valid tag, processing all data.`);
                         for (const key in items) {
                             const item = items[key];
