@@ -9424,7 +9424,7 @@ const It = class It {
     }
 
     createAnalyticsBox(t, o = {}, i) {
-       const analyticsData = this.getAnalyticsData(t);
+       const analyticsData = this.store.getAnalyticsData(t);
 
        if(!analyticsData){
           console.log("user is not noted");
