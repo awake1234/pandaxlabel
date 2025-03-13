@@ -9449,20 +9449,20 @@ const It = class It {
         nameChangesSpan.className = 'analytics-item';
         nameChangesSpan.setAttribute('data-type', 'nameChanges');
         nameChangesSpan.style.cursor = 'pointer';
-        nameChangesSpan.textContent = analyticsData.nameChanges;
-    
+        nameChangesSpan.textContent = `改名 (${analyticsData.nameChanges})`; // 修改为“改名 (对应值)”
+
         const pumpCountSpan = document.createElement('span');
         pumpCountSpan.className = 'analytics-item';
         pumpCountSpan.setAttribute('data-type', 'pumpCount');
         pumpCountSpan.style.cursor = 'pointer';
-        pumpCountSpan.textContent = analyticsData.pumpCount;
-    
+        pumpCountSpan.textContent = `发盘 (${analyticsData.pumpCount})`; // 修改为“发盘 (对应值)”
+
         const deletedTweetsSpan = document.createElement('span');
         deletedTweetsSpan.className = 'analytics-item';
         deletedTweetsSpan.setAttribute('data-type', 'deletedTweets');
         deletedTweetsSpan.style.cursor = 'pointer';
-        deletedTweetsSpan.textContent = analyticsData.deletedTweets;
-    
+        deletedTweetsSpan.textContent = `删推 (${analyticsData.deletedTweets})`; // 修改为“删推 (对应值)”
+
         box.appendChild(nameChangesSpan);
         box.appendChild(pumpCountSpan);
         box.appendChild(deletedTweetsSpan);
