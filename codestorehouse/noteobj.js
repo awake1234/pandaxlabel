@@ -5664,13 +5664,8 @@ const os = "7.4.4",
                     };
                 }
 
-                // 如果用户不存在，返回默认值
-                return {
-                    nameChanges: 0,
-                    pumpCount: 0,
-                    deletedTweets: 0,
-                    smartMoney: 0
-                };
+                // 如果用户不存在，返回空值
+                return null;
             },
 
             getUserTag(e, t = {}) {
@@ -9429,11 +9424,12 @@ const It = class It {
     }
 
     createAnalyticsBox(t, o = {}, i) {
-        const analyticsData = {
-            nameChanges: "改名(2)",      // 当前第 2 次名称更改，总共 5 次
-            pumpCount: "发盘(0)",       // 当前 3 次“泵”活动，总共 10 次
-            deletedTweets: "删帖(0)" // 删除了 15 条推文
-        }
+       const analyticsData = this.getAnalyticsData(t);
+
+       if(!analyticsData){
+          console.log("user is not noted");
+          return null;
+       }
 
         // 创建 DocumentFragment 作为临时容器
         const fragment = document.createDocumentFragment();
