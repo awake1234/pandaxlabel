@@ -62,7 +62,8 @@
       id: '[data-testid="UserName"] div[tabindex] div[dir] > span',
       showName: '[data-testid="UserName"] div[dir] > span',
       follow: '.css-175oi2r.r-obd0qt.r-18u37iz.r-1w6e6rj.r-1h0z5md.r-dnmrzs',
-      idcard: '.css-175oi2r.r-eqz5dr.r-1wbh5a2.r-1wron08'
+      idcard: '.css-175oi2r.r-eqz5dr.r-1wbh5a2.r-1wron08',
+      nav:'nav[aria-label="个人资料时间线"]'
     },
     comment: {
       toolBar: '[tabindex="-1"]:scope [role="group"][id]'
@@ -97,6 +98,7 @@
     baseToolBarBtn: 'note-obj-twitter-base-tool-bar-btn',
     commentToolBarBtn: 'note-obj-twitter-comment-tool-bar-btn',
     noteAnalyticsBox:'note-analytics-box',
+    noteSmartFollowersBox:'note-smart-followers-box'
   };
   const style = `
     .${nameSet.blueTag} {
@@ -373,6 +375,18 @@
           customElement: true
         }, eleName);
       }
+      
+       // 查找导航元素
+       const navElement = noteObj.fn.query(ele, selector.userpage.nav);
+       if (navElement) {
+           // 在导航元素前插入 KOL followers box
+           noteObj.handler(eleId, navElement, null, {
+               add: 'div',
+               before: navElement,
+               className: [nameSet.noteSmartFollowersBox],
+               customElement: true
+           }, eleName);
+       }
 
     }
   }

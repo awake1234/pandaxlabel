@@ -5648,7 +5648,7 @@ const os = "7.4.4",
                     return true;
                 }, item.name);
             },
-
+  
             // 获取某个用户的 analyticsdata
             getAnalyticsData(e) {
                 // 确保已经执行过 readAnalyticsData
@@ -5660,12 +5660,26 @@ const os = "7.4.4",
                     return {
                         nameChanges: item.nameChanges || 0,
                         pumpCount: item.pumpCount || 0,
-                        deletedTweets: item.deletedTweets || 0,
-                        smartMoney: item.smartMoney || 0
+                        deletedTweets: item.deletedTweets || 0
                     };
                 }
 
                 // 如果用户不存在，返回空值
+                return null;
+            },
+
+            getSmartFollowersData(userId) {
+            
+                // 检查用户是否存在
+                if (this.judgeUsers(userId)) {
+                    const item = this.items[userId];
+                    return {
+                        smartMoney: item.smartMoney || 0,
+                        children: item.children || [] // 返回 children 数组，如果不存在则返回空数组
+                    };
+                }
+            
+                // 如果用户不存在，返回 null
                 return null;
             },
 
@@ -9424,8 +9438,76 @@ const It = class It {
         }), c.length > 0 && t.classList.add(...c), this.store.updateUserName(o, r))
     }
 
+    createSmartFollowersBox(userId) {
+
+        const smartFollowersData = this.getSmartFollowersData(userId);
+        let followers = [];
+        let smartcount = 0;
+
+        if(smartFollowersData){
+            followers = smartFollowersData.children;
+            smartcount = smartFollowersData.smartMoney;
+        } 
+        
+
+        // 如果没有 followers 数据，返回 null
+        if (!followers || !followers.length) {
+            console.log("No followers data");
+            return null;
+        }
+    
+        // 创建 DocumentFragment 作为临时容器
+        const fragment = document.createDocumentFragment();
+    
+        // 创建主容器
+        const boxDiv = document.createElement('div');
+        boxDiv.className = 'note-smart-followers-box';
+        boxDiv.setAttribute('data-username', userId || '');
+        //boxDiv.setAttribute('data-user-id', userId);
+    
+        // 创建标题
+        const titleDiv = document.createElement('div');
+        titleDiv.className = 'note-smart-followers-title';
+        titleDiv.textContent = `关注ta的聪明钱(${smartcount}个):`; // 显示 KOL 数量
+        boxDiv.appendChild(titleDiv);
+    
+        // 创建列表容器
+        const listDiv = document.createElement('div');
+        listDiv.className = 'note-smart-followers-list';
+    
+        // 创建每个 follower 项
+        followers.forEach(follower => {
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'note-smart-followers-item';
+            itemDiv.setAttribute('data-screen-name', follower.handle);
+    
+            // 如果有头像
+            if (follower.avatarUrl) {
+                const avatarImg = document.createElement('img');
+                avatarImg.className = 'note-smart-followers-avatar';
+                avatarImg.src = follower.avatarUrl;
+                avatarImg.alt = follower.name;
+                itemDiv.appendChild(avatarImg);
+            }
+    
+            // 创建用户名 span
+            const nameSpan = document.createElement('span');
+            nameSpan.className = 'note-smart-followers-name';
+            nameSpan.textContent = follower.name;
+            itemDiv.appendChild(nameSpan);
+    
+            listDiv.appendChild(itemDiv);
+        });
+    
+        boxDiv.appendChild(listDiv);
+        fragment.appendChild(boxDiv);
+    
+        return fragment;
+    }
+
     createAnalyticsBox(t, o = {}, i) {
-       const analyticsData = this.store.getAnalyticsData(t);
+       
+        const analyticsData = this.store.getAnalyticsData(t);
 
        if(!analyticsData){
           console.log("user is not noted");
