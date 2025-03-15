@@ -63,7 +63,7 @@
       showName: '[data-testid="UserName"] div[dir] > span',
       follow: '.css-175oi2r.r-obd0qt.r-18u37iz.r-1w6e6rj.r-1h0z5md.r-dnmrzs',
       idcard: '.css-175oi2r.r-eqz5dr.r-1wbh5a2.r-1wron08',
-      nav:'nav[aria-label="个人资料时间线"]'
+      nav:'.css-175oi2r.r-1awozwy.r-18u37iz.r-1igl3o0.r-rull8r.r-qklmqi'
     },
     comment: {
       toolBar: '[tabindex="-1"]:scope [role="group"][id]'
@@ -377,7 +377,7 @@
       }
       
        // 查找导航元素
-       const navElement = noteObj.fn.query(ele, selector.userpage.nav);
+       const navElement = noteObj.fn.query(document, selector.userpage.nav);
        if (navElement) {
            // 在导航元素前插入 KOL followers box
            noteObj.handler(eleId, navElement, null, {

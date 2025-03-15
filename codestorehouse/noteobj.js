@@ -9451,7 +9451,7 @@ const It = class It {
 
     createSmartFollowersBox(userId) {
 
-        const smartFollowersData = this.getSmartFollowersData(userId);
+        const smartFollowersData = this.store.getSmartFollowersData(userId);
         let followers = [];
         let smartcount = 0;
 
