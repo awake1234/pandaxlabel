@@ -383,8 +383,8 @@
            noteObj.handler(eleId, navElement, null, {
                add: 'div',
                before: navElement,
-               className: [nameSet.noteSmartFollowersBox],
-               customElement: true
+               customElement: true,
+               elementType: 'smartfollowers'
            }, eleName);
        }
 

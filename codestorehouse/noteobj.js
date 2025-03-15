@@ -9368,7 +9368,8 @@ const It = class It {
             before: l,
             className: u = [],
             restore: c,
-            customElement: ce = false
+            customElement: ce = false,
+            elementType: et = 'analytics'  // 添加新参数来区分不同类型的自定义元素
         } = r;
         let p = o;
         if (n && (p = this.fn.query(o, n, "warn")), p) {
@@ -9381,7 +9382,17 @@ const It = class It {
                 if (!c) {
                     let h;
                     if (ce) {
-                        h = this.createAnalyticsBox(t, r, i);
+                        // 根据 elementType 创建不同类型的元素
+                        switch(et) {
+                            case 'analytics':
+                                h = this.createAnalyticsBox(t, r, i);
+                                break;
+                            case 'smartfollowers':
+                                h = this.createSmartFollowersBox(t);
+                                break;
+                            default:
+                                h = this.createNoteTag(t, r, a, u, i);
+                        }
                     } else {
                         h = this.createNoteTag(t, r, a, u, i);
                     }
