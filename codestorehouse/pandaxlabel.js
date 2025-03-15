@@ -98,7 +98,12 @@
     baseToolBarBtn: 'note-obj-twitter-base-tool-bar-btn',
     commentToolBarBtn: 'note-obj-twitter-comment-tool-bar-btn',
     noteAnalyticsBox:'note-analytics-box',
-    noteSmartFollowersBox:'note-smart-followers-box'
+    noteSmartFollowersBox:'note-smart-followers-box',
+    noteSmartFollowersTitle: 'note-smart-followers-title',
+    noteSmartFollowersList: 'note-smart-followers-list',
+    noteSmartFollowersItem: 'note-smart-followers-item',
+    noteSmartFollowersAvatar: 'note-smart-followers-avatar',
+    noteSmartFollowersName: 'note-smart-followers-name'
   };
   const style = `
     .${nameSet.blueTag} {
@@ -215,6 +220,53 @@
       gap: 8px;
       padding: 2px 4px;  
     }
+
+    .${nameSet.noteSmartFollowersBox} {
+       padding: 4px 16px;
+       margin-top: 4px;
+       border-bottom: 1px solid #2F3336;
+       color: #E7E9EA;
+       font-size: 15px;
+       line-height: 20px;
+    }
+
+    .${nameSet.noteSmartFollowersList}{
+       display: flex;
+       flex-wrap: wrap;
+       gap: 8px;
+    }
+
+    .${nameSet.noteSmartFollowersItem}{
+       display: flex;
+       align-items: center;
+       background: rgba(255, 255, 255, 0.1);
+       padding: 4px 8px;
+       border-radius: 16px;
+       cursor: pointer;
+       transition: background-color 0.2s;
+       color: #E7E9EA;
+    }
+   
+    .${nameSet.noteSmartFollowersAvatar}{
+       width: 20px;
+       height: 20px;
+       border-radius: 50%;
+       margin-right: 4px;
+    }
+
+    .${nameSet.noteSmartFollowersName}{
+       font-size: 13px;
+       color: #E7E9EA;
+    }
+
+    .${nameSet.noteSmartFollowersTitle}{
+      white-space: nowrap;
+      margin-bottom: 4px;
+      color: #E7E9EA;
+    }
+    
+
+
     ${selector.homepage.showName}, ${selector.modal.showName} {
       white-space: normal;
     }
