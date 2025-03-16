@@ -415,7 +415,7 @@
       noteObj.handler(eleId, ele, selector.userpage.showName, {
         add: 'span',
         className: [nameSet.blueTag],
-        customElements:true
+        customElement:true
       }, eleName);
       
     }
@@ -513,7 +513,7 @@
             noteObj.handler(newUserId, ele, selector.userpage.showName, {
               add: 'span',
               className: [nameSet.blueTag],
-              customElements:true
+              customElement:true
             }, newUserName);
 
           }
