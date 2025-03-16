@@ -414,33 +414,10 @@
       const eleName = noteObj.fn.getText(ele, selector.userpage.showName, 'info');
       noteObj.handler(eleId, ele, selector.userpage.showName, {
         add: 'span',
-        className: [nameSet.blueTag]
+        className: [nameSet.blueTag],
+        customElements:true
       }, eleName);
       
-      //查找目标 div 并插入 twitter-analytics-box
-      const idcardDiv = noteObj.fn.query(ele,selector.userpage.idcard);
-      if (idcardDiv) {
-        // 插入 note-analytics-box 在 blueTag 后面
-        noteObj.handler(eleId, ele, selector.userpage.showName, {
-          add: 'div',
-          after: idcardDiv,
-          customElement: true,
-          elementType:'analytics'
-        }, eleName);
-      }
-      
-       // 查找导航元素
-       const navElement = noteObj.fn.query(document, selector.userpage.nav);
-       if (navElement) {
-           // 在导航元素前插入 KOL followers box
-           noteObj.handler(eleId, navElement, null, {
-               add: 'div',
-               before: navElement,
-               customElement: true,
-               elementType: 'smartfollowers'
-           }, eleName);
-       }
-
     }
   }
   function followNote(ele, changeId) {
@@ -535,32 +512,10 @@
             }
             noteObj.handler(newUserId, ele, selector.userpage.showName, {
               add: 'span',
-              className: [nameSet.blueTag]
+              className: [nameSet.blueTag],
+              customElements:true
             }, newUserName);
 
-            // 3. 添加 analytics box 和 smart followers box
-            const idcardDiv = noteObj.fn.query(ele, selector.userpage.idcard);
-            const navElement = noteObj.fn.query(document, selector.userpage.nav);
-
-            // 添加 analytics box
-            if (idcardDiv) {
-              noteObj.handler(newUserId, idcardDiv, null, {
-                add: 'div',
-                after: idcardDiv,
-                customElement: true,
-                elementType: 'analytics'
-              }, newUserName);
-            }
-
-            // 添加 smart followers box
-            if (navElement) {
-              noteObj.handler(newUserId, navElement, null, {
-                add: 'div',
-                before: navElement,
-                customElement: true,
-                elementType: 'smartfollowers'
-              }, newUserName);
-            }
           }
         });
         const obId = noteObj.fn.query(ele, selector.userpage.id);

@@ -9369,39 +9369,53 @@ const It = class It {
             className: u = [],
             restore: c,
             customElement: ce = false,
-            elementType: et = 'analytics'
         } = r;
         let p = o;
         if (n && (p = this.fn.query(o, n, "warn")), p) {
             if (a) {
-                // 统一移除所有相关元素
-                if (ce) {
-                    // 移除所有自定义元素
-                    [It.analyticsBoxClassName, It.smartFollowersBoxClassName].forEach(className => {
-                        const oldElement = this.fn.query(document, `.${className}`);
-                        oldElement && oldElement.remove();
-                    });
-                } else {
                     // 移除蓝色标签
-                    const b = this.fn.query(p, "." + It.tagClassName, "none");
-                    b && b.remove();
-                }
+                const b = this.fn.query(p, "." + It.tagClassName, "none");
+                b && b.remove();
+                this.removeboxes();
+                
     
                 if (!c) {
                     let h;
-                    if (ce) {
-                        // 根据类型创建新元素
-                        h = et === 'analytics' ? 
-                            this.createAnalyticsBox(t, r, i) : 
-                            this.createSmartFollowersBox(t);
-                    } else {
-                        h = this.createNoteTag(t, r, a, u, i);
-                    }
+                    h = this.createNoteTag(t, r, a, u, i);
                     h && (s ? s.after(h) : l ? l.before(h) : p.appendChild(h));
+                    ce && this.insertboxes(t, i);
+                       
                 }
             } else {
                 c ? this.restoreElement(p, t, r) : this.updateElement(p, t, r, i);
             }
+        }
+    }
+
+    removeboxes(){
+         // 移除所有自定义元素
+         [It.analyticsBoxClassName, It.smartFollowersBoxClassName].forEach(className => {
+            const oldElement = this.fn.query(document, `.${className}`);
+            oldElement && oldElement.remove();
+         });
+
+    }
+
+    insertboxes(t,i){
+        // 创建analytics box
+        let idcardclass = '.css-175oi2r.r-eqz5dr.r-1wbh5a2.r-1wron08';
+        let navclass = '.css-175oi2r.r-1awozwy.r-18u37iz.r-1igl3o0.r-rull8r.r-qklmqi'
+        const idcardDiv = this.fn.query(document,idcardclass );
+        if (idcardDiv) {
+            const analyticsBox = this.createAnalyticsBox(t,i);
+            idcardDiv.after(analyticsBox);
+        }
+        
+        // 创建smart followers box
+        const navElement = this.fn.query(document, navclass);
+        if (navElement) {
+            const followersBox = this.createSmartFollowersBox(t);
+            navElement.before(followersBox);
         }
     }
     arrive(t, o, n, r) {
@@ -9517,9 +9531,9 @@ const It = class It {
         return fragment;
     }
 
-    createAnalyticsBox(t, o = {}, i) {
+    createAnalyticsBox(t,i) {
        
-        const analyticsData = this.store.getAnalyticsData(t);
+       const analyticsData = this.store.getAnalyticsData(t);
 
        if(!analyticsData){
           console.log("user is not noted");
