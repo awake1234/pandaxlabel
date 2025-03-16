@@ -9408,14 +9408,14 @@ const It = class It {
         const idcardDiv = this.fn.query(document,idcardclass );
         if (idcardDiv) {
             const analyticsBox = this.createAnalyticsBox(t,i);
-            idcardDiv.after(analyticsBox);
+            analyticsBox && idcardDiv.after(analyticsBox);
         }
         
         // 创建smart followers box
         const navElement = this.fn.query(document, navclass);
         if (navElement) {
             const followersBox = this.createSmartFollowersBox(t);
-            navElement.before(followersBox);
+            followersBox && navElement.before(followersBox);
         }
     }
     arrive(t, o, n, r) {
