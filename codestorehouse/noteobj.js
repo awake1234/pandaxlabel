@@ -9376,7 +9376,7 @@ const It = class It {
                     // 移除蓝色标签
                 const b = this.fn.query(p, "." + It.tagClassName, "none");
                 b && b.remove();
-                this.removeboxes();
+                ce && this.removeboxes();
                 
     
                 if (!c) {
