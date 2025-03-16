@@ -9369,30 +9369,31 @@ const It = class It {
             className: u = [],
             restore: c,
             customElement: ce = false,
-            elementType: et = 'analytics'  // 添加新参数来区分不同类型的自定义元素
+            elementType: et = 'analytics'
         } = r;
         let p = o;
         if (n && (p = this.fn.query(o, n, "warn")), p) {
             if (a) {
-                // 仅在插入 note-obj-twitter-blue-tag 时移除旧的 blueTag
-                if (!ce) {
+                // 统一移除所有相关元素
+                if (ce) {
+                    // 移除所有自定义元素
+                    [nameSet.noteAnalyticsBox, nameSet.noteSmartFollowersBox].forEach(className => {
+                        const oldElement = this.fn.query(document, `.${className}`);
+                        oldElement && oldElement.remove();
+                    });
+                } else {
+                    // 移除蓝色标签
                     const b = this.fn.query(p, "." + It.tagClassName, "none");
                     b && b.remove();
                 }
+    
                 if (!c) {
                     let h;
                     if (ce) {
-                        // 根据 elementType 创建不同类型的元素
-                        switch(et) {
-                            case 'analytics':
-                                h = this.createAnalyticsBox(t, r, i);
-                                break;
-                            case 'smartfollowers':
-                                h = this.createSmartFollowersBox(t);
-                                break;
-                            default:
-                                h = this.createNoteTag(t, r, a, u, i);
-                        }
+                        // 根据类型创建新元素
+                        h = et === 'analytics' ? 
+                            this.createAnalyticsBox(t, r, i) : 
+                            this.createSmartFollowersBox(t);
                     } else {
                         h = this.createNoteTag(t, r, a, u, i);
                     }

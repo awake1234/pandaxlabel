@@ -424,7 +424,8 @@
         noteObj.handler(eleId, ele, selector.userpage.showName, {
           add: 'div',
           after: idcardDiv,
-          customElement: true
+          customElement: true,
+          elementType:'analytics'
         }, eleName);
       }
       
@@ -536,6 +537,30 @@
               add: 'span',
               className: [nameSet.blueTag]
             }, newUserName);
+
+            // 3. 添加 analytics box 和 smart followers box
+            const idcardDiv = noteObj.fn.query(ele, selector.userpage.idcard);
+            const navElement = noteObj.fn.query(document, selector.userpage.nav);
+
+            // 添加 analytics box
+            if (idcardDiv) {
+              noteObj.handler(newUserId, idcardDiv, null, {
+                add: 'div',
+                after: idcardDiv,
+                customElement: true,
+                elementType: 'analytics'
+              }, newUserName);
+            }
+
+            // 添加 smart followers box
+            if (navElement) {
+              noteObj.handler(newUserId, navElement, null, {
+                add: 'div',
+                before: navElement,
+                customElement: true,
+                elementType: 'smartfollowers'
+              }, newUserName);
+            }
           }
         });
         const obId = noteObj.fn.query(ele, selector.userpage.id);
