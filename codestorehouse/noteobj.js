@@ -9377,7 +9377,7 @@ const It = class It {
                 // 统一移除所有相关元素
                 if (ce) {
                     // 移除所有自定义元素
-                    [nameSet.noteAnalyticsBox, nameSet.noteSmartFollowersBox].forEach(className => {
+                    [It.analyticsBoxClassName, It.smartFollowersBoxClassName].forEach(className => {
                         const oldElement = this.fn.query(document, `.${className}`);
                         oldElement && oldElement.remove();
                     });
@@ -9595,6 +9595,7 @@ const It = class It {
         return o.className = "note-obj-vue-module", o.innerHTML = `<div id="${n}" class="note-obj-vue-div"></div>`, document.body.appendChild(o), n
     }
 };
-ct(It, "tagClassName", "note-obj-user-tag"), ct(It, "btnClassName", "note-obj-add-note-btn");
+ct(It, "tagClassName", "note-obj-user-tag"), ct(It, "btnClassName", "note-obj-add-note-btn"),ct(It, "analyticsBoxClassName", "note-analytics-box"),
+ct(It, "smartFollowersBoxClassName", "note-smart-followers-box");
 let Yn = It;
 window.Note_Obj = Yn;
