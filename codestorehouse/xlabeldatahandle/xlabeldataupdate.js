@@ -61,25 +61,20 @@
     async function fetchAccountData(handle, parentHandle) {
         console.log(`开始获取账户 ${handle} 的数据...`);
 
-        // 检查当前页面是否是目标账户页面
-        const currentPath = window.location.pathname.split("/")[1];
-        if (currentPath !== handle) {
-            console.log(`当前页面不是目标账户，跳转到 ${handle} 的页面`);
-            sessionStorage.setItem("pendingHandle", handle);
-            sessionStorage.setItem("pendingParent", parentHandle || "");
-            console.log(`准备跳转到 ${handle}`);
-            await new Promise(res => setTimeout(res, 7000)); // 等待 7 秒
-            location.href = `https://x.com/${handle}`;
-            console.log(`已跳转到 ${handle}`);
-            return; // 页面会重新加载，后续代码在新页面中执行
+        // 1. 等待按钮渲染
+        await new Promise(resolve => setTimeout(resolve, 3000));
+
+        // 2. 模拟点击内部"点击查询"按钮（如果存在）
+        const internalQueryElement = document.querySelector('span.analytics-item[data-type="toQuery"]');
+        if (!internalQueryElement) {
+            console.log("未找到内部'点击查询'按钮，无法获取插件数据");
+            return null;
         }
 
-        // 模拟点击内部"点击查询"按钮（如果存在）
-        const internalQueryElement = document.querySelector('span.analytics-item[data-type="toQuery"]');
-        if (internalQueryElement) {
-            internalQueryElement.click();
-            console.log("已模拟点击内部'点击查询'元素");
-        }
+        internalQueryElement.click();
+        console.log("已模拟点击内部'点击查询'元素");
+
+
         // 等待插件渲染数据
         await new Promise(resolve => setTimeout(resolve, 7000));
 
@@ -90,9 +85,11 @@
         }
 
         const errorMessage = pluginContainer.querySelector('span.analytics-item')
-        if(errorMessage && errorMessage.innerText.includes("数据获取失败")){
-           sessionStorage.setItem("isStopped","true");
-           return null;
+        if (errorMessage && errorMessage.innerText.includes("数据获取失败" || "加载失败")) {
+            sessionStorage.setItem("isStopped", "true");
+            sessionStorage.setItem("isUpdating", "false");
+            console.log("查询次数可能已达上限")
+            return null;
         }
 
         const nameChangesSpan = pluginContainer.querySelector('span.analytics-item[data-type="nameChanges"]');
@@ -100,12 +97,12 @@
         const deletedTweetsSpan = pluginContainer.querySelector('span.analytics-item[data-type="deletedTweets"]');
         const accountNameSpan = pluginContainer.querySelector('span.analytics-item.title[data-type="title"]');
         const nicknameSpan = document.querySelector('div[data-testid="UserName"] span span');
-        
+
         const nameChangesNumber = parseInt(nameChangesSpan?.innerText.match(/\((\d+)\)/)?.[1], 10) || 0;
         const pumpCountNumber = parseInt(pumpCountSpan?.innerText.match(/\((\d+)\)/)?.[1], 10) || 0;
         const deletedTweetsNumber = parseInt(deletedTweetsSpan?.innerText.match(/\((\d+)\)/)?.[1], 10) || 0;
         const nickname = nicknameSpan ? nicknameSpan.innerText : "";
-        const accountName = accountNameSpan?accountNameSpan.innerText:nickname;
+        const accountName = accountNameSpan.innerText ? accountNameSpan.innerText : nickname;
 
         console.log(`改名次数: ${nameChangesNumber}, 发盘次数: ${pumpCountNumber}, 删贴次数: ${deletedTweetsNumber}`);
 
@@ -154,7 +151,7 @@
             pumpCount: pumpCountNumber,
             deletedTweets: deletedTweetsNumber,
             smartMoney: kfNumber,
-            nickname:nickname,
+            nickname: nickname,
             children: childrenHandles
         };
     }
@@ -406,47 +403,43 @@
         updateAllHandles();
     }
 
-    async function checkAndClickQuery(maxAttempts = 10) {
-        // 从 sessionStorage 获取当前尝试次数，如果没有则初始化为0
+    async function checkAndClickQuery(maxAttempts = 5) {
         let currentAttempt = parseInt(sessionStorage.getItem('queryAttemptCount') || '0');
-
+    
         while (currentAttempt < maxAttempts) {
             console.log(`第 ${currentAttempt + 1} 次尝试查找查询按钮...`);
             const internalQueryElement = document.querySelector('span.analytics-item[data-type="toQuery"]');
-
+    
             if (internalQueryElement) {
                 console.log("找到查询按钮，准备点击");
                 internalQueryElement.click();
                 console.log("已点击查询按钮，等待数据加载...");
                 await new Promise(resolve => setTimeout(resolve, 7000));
-                // 重置尝试次数
+    
+                // 如果按钮不是“加载失败”，说明暂时还可以继续查询
                 sessionStorage.removeItem('queryAttemptCount');
                 console.log("等待完成，继续执行");
                 return true;
             }
-
-            // 增加尝试次数并保存到 sessionStorage
+    
             currentAttempt++;
             sessionStorage.setItem('queryAttemptCount', currentAttempt.toString());
-
-            // 如果达到最大尝试次数，则退出
+    
             if (currentAttempt >= maxAttempts) {
                 break;
             }
-
+    
             console.log(`第 ${currentAttempt} 次尝试未找到按钮，准备刷新页面...`);
             window.location.reload();
-
-            // 等待页面重新加载
             console.log("等待页面重新加载...");
             await new Promise(resolve => setTimeout(resolve, 5000));
         }
-
-        // 重置尝试次数
+    
         sessionStorage.removeItem('queryAttemptCount');
         console.log("达到最大重试次数，未能找到查询按钮");
         return false;
     }
+    
     
 
     function updateNicknameInDB(handle, nickname) {
@@ -532,7 +525,7 @@
                 processNickname(); // 继续处理下一个
                 return;
             } else {
-                console.log(`第 ${attempts + 1} 次尝试未找到 nickname，准备刷新页面...`);
+                console.log(`第 ${attempts + 1} 次尝试未找到 nickname,准备刷新页面...`);
                 attempts++;
                 sessionStorage.setItem("nicknameAttempts", attempts.toString()); // 更新 attempts
                 window.location.reload(); // 刷新页面
@@ -652,14 +645,13 @@
             return;
         }
     
-
-         // 从 Twitter 页面获取账户的最新数据
-         const newAccountData = await fetchAccountData(handle,existingAccountData.parent);
-         if (!newAccountData) {
-             console.log(`无法获取账户 ${handle} 的新数据`);
-             return;
-         }
-
+        // 从外部来源获取账户的最新数据
+        const newAccountData = await fetchAccountData(handle);
+        if (!newAccountData) {
+            console.log(`无法获取账户 ${handle} 的新数据`);
+            return;
+        }
+    
         // 1. 更新账户字段
         let updated = false;
         const fieldsToUpdate = ['label', 'nameChanges', 'pumpCount', 'deletedTweets', 'smartMoney', 'nickname'];
@@ -671,15 +663,33 @@
         });
     
         // 2. 处理 children 数组
-        const newChildrenHandles = new Set(newAccountData.children.map(child => child.handle));
-        const existingChildrenHandles = new Set(existingAccountData.children.map(child => child.handle));
+        const newChildrenHandles = newAccountData.children; // 直接使用完整对象数组
+        const existingChildrenHandles = existingAccountData.children; // 已有数据的完整对象数组
     
-        // 找出新增的 children
-        const addedChildren = [...newChildrenHandles].filter(handle => !existingChildrenHandles.has(handle));
+        // 将 existingChildrenHandles 转换为 Map 以便快速查找
+        const existingChildrenMap = new Map(existingChildrenHandles.map(child => [child.handle, child]));
     
-        // 更新 children 数组为最新的
-        existingAccountData.children = newAccountData.children;
-        updated = updated || addedChildren.length > 0;
+        // 找出新增的 children 和字段差异
+        const addedChildren = [];
+        for (const newChild of newChildrenHandles) {
+            const existingChild = existingChildrenMap.get(newChild.handle);
+            if (!existingChild) {
+                // 如果 handle 在现有数据中不存在，视为新增
+                addedChildren.push(newChild.handle);
+            } else {
+                // 如果 handle 存在，比较字段是否不同
+                if (existingChild.name !== newChild.name || existingChild.avatar !== newChild.avatar) {
+                    console.log(`账户 ${handle} 的子账户 ${newChild.handle} 的字段有变化`);
+                    updated = true;
+                    break; // 发现差异后跳出循环
+                }
+            }
+        }
+    
+        // 更新 children 数组为最新的（全量更新）
+        if (updated || addedChildren.length > 0) {
+            existingAccountData.children = newAccountData.children;
+        }
     
         // 如果有更新，保存到数据库
         if (updated) {
@@ -690,40 +700,35 @@
             console.log(`账户 ${handle} 数据没有变化`);
         }
     
-        // 3. 处理新增的 children
+        // 3. 检查 addedChildren 中的 handle 是否存在于数据库
+        const trulyNewChildren = [];
         for (const childHandle of addedChildren) {
-            // 检查数据库中是否已存在该 childHandle
             const existingChild = await getAccountFromDB(childHandle);
             if (!existingChild) {
-                console.log(`子账户 ${childHandle} 不存在于数据库中，开始从 Twitter 获取数据...`);
-                // 从 Twitter 页面获取子账户的完整数据
-                const childData = await fetchAccountData(childHandle, handle);
-                if (childData) {
-                    const childRecord = {
-                        handle: childHandle,
-                        parent: handle,
-                        label: childData.label,
-                        nameChanges: childData.nameChanges,
-                        pumpCount: childData.pumpCount,
-                        deletedTweets: childData.deletedTweets,
-                        smartMoney: childData.smartMoney,
-                        nickname: childData.nickname,
-                        children: childData.children,
-                        timestamp: Date.now()
-                    };
-                    await addAccountToDB(childRecord);
-                    console.log(`子账户 ${childHandle} 数据已插入`);
-    
-                    // 递归更新该子账户
-                    await updateData(childHandle);
-                } else {
-                    console.log(`无法从 Twitter 获取子账户 ${childHandle} 的数据`);
-                }
-            } else {
-                console.log(`子账户 ${childHandle} 已存在于数据库中，跳过插入`);
+                trulyNewChildren.push(childHandle); // 只添加数据库中不存在的 handle
             }
         }
+    
+        // 将真正新增的 childHandle 保存到 sessionStorage
+        if (trulyNewChildren.length > 0) {
+            // 从 sessionStorage 获取现有的 newChildHandles，若不存在则初始化为空数组
+            let newChildHandles = JSON.parse(sessionStorage.getItem('newChildHandles')) || [];
+    
+            // 添加 trulyNewChildren 中的 handle，并确保去重
+            trulyNewChildren.forEach(childHandle => {
+                if (!newChildHandles.includes(childHandle)) {
+                    newChildHandles.push(childHandle);
+                }
+            });
+    
+            // 更新 sessionStorage
+            sessionStorage.setItem('newChildHandles', JSON.stringify(newChildHandles));
+            console.log(`已将 ${trulyNewChildren.length} 个数据库中不存在的 childHandle 保存到 sessionStorage`);
+        } else {
+            console.log(`没有新的 childHandle 需要保存到 sessionStorage`);
+        }
     }
+    
     // 添加一个"更新数据"按钮
     const updateButton = document.createElement("button");
     updateButton.innerText = "更新数据";
@@ -751,12 +756,10 @@
 
 
     async function updateAllHandles() {
-        // 从 sessionStorage 获取备份的 handle 列表
         let allHandles = JSON.parse(sessionStorage.getItem("allHandlesBackup"));
-    
-        // 如果 sessionStorage 中没有备份，则从数据库获取并备份
+        
         if (!allHandles || allHandles.length === 0) {
-            allHandles = await getAllHandles(); // 假设这是从数据库获取 handle 的异步函数
+            allHandles = await getAllHandles();
             if (!allHandles || allHandles.length === 0) {
                 console.log("数据库中没有 handle");
                 return;
@@ -764,41 +767,43 @@
             sessionStorage.setItem("allHandlesBackup", JSON.stringify(allHandles));
         }
     
-        // 从 sessionStorage 获取保存的 index，默认从 0 开始
         let currentIndex = parseInt(sessionStorage.getItem("currentIndex") || "0", 10);
     
-        // 检查 index 是否超出范围
-        if (currentIndex >= allHandles.length) {
+        try {
+            for (let i = currentIndex; i < allHandles.length; i++) {
+                if (sessionStorage.getItem("isUpdating") !== "true") {
+                    console.log("更新已停止");
+                    sessionStorage.setItem("currentIndex", i.toString());
+                    return;
+                }
+
+                const currentPath = window.location.pathname.split("/")[1];
+                if (currentPath !== allHandles[i]) {
+                    console.log(`当前页面不是目标账户，跳转到 ${allHandles[i]} 的页面`);
+                    sessionStorage.setItem("currentIndex", i.toString());
+                    await new Promise(res => setTimeout(res, 7000));
+                    location.href = `https://x.com/${allHandles[i]}`;
+                    console.log(`已跳转到 ${allHandles[i]}`);
+                    return;
+                }
+    
+                try {
+                    await updateData(allHandles[i]);
+                    console.log(`更新完成 ${i + 1}/${allHandles.length}`);
+                    sessionStorage.setItem("currentIndex", (i + 1).toString());
+                    console.log("处理第", i, "项,currentIndex 将更新为", i + 1);
+                } catch (error) {
+                    console.error(`更新 handle ${allHandles[i]} 失败: ${error}`);
+                }
+            }
+    
             console.log("所有 handle 已更新完成");
             sessionStorage.setItem("isUpdating", "false");
             sessionStorage.removeItem("currentIndex");
-            sessionStorage.removeItem("allHandlesBackup"); // 清理备份
+            sessionStorage.removeItem("allHandlesBackup");
             updateButton.innerText = "更新数据";
-            return;
-        }
-    
-        // 从 currentIndex 开始更新
-        for (let i = currentIndex; i < allHandles.length; i++) {
-            // 检查是否需要停止更新
-            if (sessionStorage.getItem("isUpdating") !== "true") {
-                console.log("更新已停止");
-                sessionStorage.setItem("currentIndex", i.toString());
-                break;
-            }
-    
-            const handle = allHandles[i];
-            await updateData(handle); // 更新单个 handle
-            // 更新 index
-            sessionStorage.setItem("currentIndex", (i + 1).toString());
-        }
-    
-        // 更新完成后重置状态
-        if (sessionStorage.getItem("isUpdating") === "true") {
-            sessionStorage.setItem("isUpdating", "false");
-            sessionStorage.removeItem("currentIndex");
-            sessionStorage.removeItem("allHandlesBackup"); // 清理备份
-            updateButton.innerText = "更新数据";
-            console.log("所有 handle 更新完成");
+        } catch (error) {
+            console.error("更新过程发生错误:", error);
         }
     }
     
