@@ -9564,7 +9564,7 @@ const It = class It {
         pumpCountSpan.className = 'note-analytics-item';
         pumpCountSpan.setAttribute('data-type', 'pumpCount');
         pumpCountSpan.style.cursor = 'pointer';
-        pumpCountSpan.textContent = `发盘 (${analyticsData.pumpCount})`; // 修改为“发盘 (对应值)”
+        pumpCountSpan.textContent = `PUMP (${analyticsData.pumpCount})`; // 修改为“发盘 (对应值)”
 
         const deletedTweetsSpan = document.createElement('span');
         deletedTweetsSpan.className = 'note-analytics-item';

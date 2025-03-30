@@ -25,7 +25,7 @@
                     children: account.children || [],
                     timestamp: account.timestamp || 0,
                     deletedTweets:account.deletedTweets || 0,
-                    namecChanges:account.namecChanges || 0,
+                    nameChanges:account.nameChanges || 0,
                     pumpCount:account.pumpCount || 0,
                     smartMoney:account.smartMoney || 0
 
