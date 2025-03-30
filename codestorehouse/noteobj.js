@@ -9508,10 +9508,10 @@ const It = class It {
             itemDiv.setAttribute('data-screen-name', follower.handle);
     
             // 如果有头像
-            if (follower.avatarUrl) {
+            if (follower.avatar) {
                 const avatarImg = document.createElement('img');
                 avatarImg.className = 'note-smart-followers-avatar';
-                avatarImg.src = follower.avatarUrl;
+                avatarImg.src = follower.avatar;
                 avatarImg.alt = follower.name;
                 itemDiv.appendChild(avatarImg);
             }
