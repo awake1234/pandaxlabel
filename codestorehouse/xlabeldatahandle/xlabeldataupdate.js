@@ -9,6 +9,161 @@
 // @run-at       document-idle
 // ==/UserScript==
 
+
+
+//将sessionstorage导出
+// (function() {
+//     try {
+//         // 获取 sessionStorage 的所有数据
+//         const sessionData = {};
+//         for (let i = 0; i < sessionStorage.length; i++) {
+//             const key = sessionStorage.key(i);
+//             const value = sessionStorage.getItem(key);
+//             try {
+//                 sessionData[key] = JSON.parse(value);
+//             } catch (e) {
+//                 sessionData[key] = value;
+//             }
+//         }
+
+//         // 转换为 JSON 字符串
+//         const jsonString = JSON.stringify(sessionData, null, 2);
+
+//         // 创建 Blob 对象
+//         const blob = new Blob([jsonString], { type: "application/json" });
+
+//         // 创建下载链接
+//         const url = URL.createObjectURL(blob);
+//         const link = document.createElement("a");
+//         link.href = url;
+//         link.download = `sessionStorage_${new Date().toISOString()}.json`;
+
+//         // 触发下载
+//         document.body.appendChild(link);
+//         link.click();
+
+//         // 清理
+//         document.body.removeChild(link);
+//         URL.revokeObjectURL(url);
+
+//         console.log("sessionStorage 已成功导出为 JSON 文件");
+//     } catch (error) {
+//         console.error("导出 sessionStorage 失败:", error);
+//     }
+// })();
+
+
+//导入sessionstorage
+(function() {
+    const fileInput = document.createElement("input");
+    fileInput.type = "file";
+    fileInput.accept = "application/json";
+    fileInput.style.display = "none";
+    document.body.appendChild(fileInput);
+
+    fileInput.addEventListener("change", (event) => {
+        const file = event.target.files[0];
+        if (!file) {
+            console.error("未选择文件");
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const sessionData = JSON.parse(e.target.result);
+                for (const key in sessionData) {
+                    if (sessionData.hasOwnProperty(key)) {
+                        const value = sessionData[key];
+                        if (typeof value === "object" && value !== null) {
+                            sessionStorage.setItem(key, JSON.stringify(value));
+                        } else {
+                            sessionStorage.setItem(key, value.toString());
+                        }
+                    }
+                }
+                console.log("已成功从 JSON 文件导入 sessionStorage");
+                console.log("当前 sessionStorage 内容:", Object.fromEntries(Object.entries(sessionStorage)));
+            } catch (error) {
+                console.error("导入 sessionStorage 失败:", error);
+            }
+        };
+        reader.onerror = (e) => {
+            console.error("读取文件失败:", e);
+        };
+        reader.readAsText(file);
+
+        document.body.removeChild(fileInput);
+    });
+
+    fileInput.click();
+})();
+
+
+
+(async function() {
+    // 定义 openDB 函数，用于打开 IndexedDB 数据库
+    function openDB() {
+      return new Promise((resolve, reject) => {
+        const request = indexedDB.open("xlabel", 1);
+        request.onupgradeneeded = function(event) {
+          const db = event.target.result;
+          if (!db.objectStoreNames.contains("accounts")) {
+            db.createObjectStore("accounts", { keyPath: "handle" });
+          }
+        };
+        request.onsuccess = function(event) {
+          resolve(event.target.result);
+        };
+        request.onerror = function(event) {
+          reject(event.target.error);
+        };
+      });
+    }
+  
+    // 定义 unupdatehandles 函数，查找 children 数组中缺少 "avatar" 字段的记录对应的 key 值
+    async function unupdatehandles() {
+      try {
+        const db = await openDB();
+        return new Promise((resolve, reject) => {
+          const tx = db.transaction("accounts", "readonly");
+          const store = tx.objectStore("accounts");
+          const request = store.getAll();
+          request.onsuccess = function(e) {
+            const accounts = e.target.result;
+            let unupdateHandles = [];
+            accounts.forEach(account => {
+              // 检查 children 数组是否存在
+              if (Array.isArray(account.children)) {
+                // 如果该记录的 children 中存在缺失 "avatar" 字段的项，则保存当前记录的 key（即 account.handle）
+                const hasMissingAvatar = account.children.some(child => {
+                  return !child.hasOwnProperty("avatar") || child.avatar === undefined || child.avatar === "";
+                });
+                if (hasMissingAvatar && account.handle && !unupdateHandles.includes(account.handle)) {
+                  unupdateHandles.push(account.handle);
+                }
+              }
+            });
+            // 保存结果到 sessionStorage，并在控制台输出
+            sessionStorage.setItem("unupdateHandles", JSON.stringify(unupdateHandles));
+            console.log("缺失 avatar 字段的记录 key:", unupdateHandles);
+            resolve(unupdateHandles);
+          };
+          request.onerror = function(e) {s
+            console.error("查询数据库失败:", e.target.error);
+            reject(e.target.error);
+          };
+        });
+      } catch (error) {
+        console.error("打开数据库失败:", error);
+      }
+    }
+  
+    // 直接调用函数，在控制台执行
+    unupdatehandles();
+  })();
+  
+
 (function () {
     'use strict';
     /************** IndexedDB 数据库相关函数 **************/
@@ -60,52 +215,53 @@
     /************** 从页面 DOM 中获取数据（生成标签） **************/
     async function fetchAccountData(handle, parentHandle) {
         console.log(`开始获取账户 ${handle} 的数据...`);
-
+    
         // 1. 等待按钮渲染
         await new Promise(resolve => setTimeout(resolve, 3000));
-
+    
         // 2. 模拟点击内部"点击查询"按钮（如果存在）
         const internalQueryElement = document.querySelector('span.analytics-item[data-type="toQuery"]');
         if (!internalQueryElement) {
             console.log("未找到内部'点击查询'按钮，无法获取插件数据");
             return null;
         }
-
+    
         internalQueryElement.click();
         console.log("已模拟点击内部'点击查询'元素");
-
-
+    
         // 等待插件渲染数据
         await new Promise(resolve => setTimeout(resolve, 7000));
-
+    
         // ① 从插件容器中获取改名、发盘、删贴数据
         const pluginContainer = document.querySelector('div.twitter-analytics-box');
         if (!pluginContainer) {
             throw new Error("未找到插件容器 div.twitter-analytics-box");
         }
-
-        const errorMessage = pluginContainer.querySelector('span.analytics-item')
+    
+        const errorMessage = pluginContainer.querySelector('span.analytics-item');
         if (errorMessage && errorMessage.innerText.includes("数据获取失败" || "加载失败")) {
             sessionStorage.setItem("isStopped", "true");
             sessionStorage.setItem("isUpdating", "false");
-            console.log("查询次数可能已达上限")
+            console.log("查询次数可能已达上限");
             return null;
         }
-
-        const nameChangesSpan = pluginContainer.querySelector('span.analytics-item[data-type="nameChanges"]');
-        const pumpCountSpan = pluginContainer.querySelector('span.analytics-item[data-type="pumpCount"]');
-        const deletedTweetsSpan = pluginContainer.querySelector('span.analytics-item[data-type="deletedTweets"]');
-        const accountNameSpan = pluginContainer.querySelector('span.analytics-item.title[data-type="title"]');
+    
+        // 修改后的逻辑：根据 DOM 结构获取数据
+        const nameChangesDiv = pluginContainer.querySelector('div.count-item[data-type="nameChanges"]');
+        const pumpCountDiv = pluginContainer.querySelector('div.count-item[data-type="pumpCount"]');
+        const deletedTweetsDiv = pluginContainer.querySelector('div.count-item[data-type="deletedTweets"]');
+        const accountNameSpan = pluginContainer.querySelector('span.title[data-type="title"]');
         const nicknameSpan = document.querySelector('div[data-testid="UserName"] span span');
-
-        const nameChangesNumber = parseInt(nameChangesSpan?.innerText.match(/\((\d+)\)/)?.[1], 10) || 0;
-        const pumpCountNumber = parseInt(pumpCountSpan?.innerText.match(/\((\d+)\)/)?.[1], 10) || 0;
-        const deletedTweetsNumber = parseInt(deletedTweetsSpan?.innerText.match(/\((\d+)\)/)?.[1], 10) || 0;
+    
+        // 解析数据：直接获取 innerText 并转换为数字
+        const nameChangesNumber = nameChangesDiv ? parseInt(nameChangesDiv.innerText.trim(), 10) || 0 : 0;
+        const pumpCountNumber = pumpCountDiv ? parseInt(pumpCountDiv.innerText.trim(), 10) || 0 : 0;
+        const deletedTweetsNumber = deletedTweetsDiv ? parseInt(deletedTweetsDiv.innerText.trim(), 10) || 0 : 0;
         const nickname = nicknameSpan ? nicknameSpan.innerText : "";
-        const accountName = accountNameSpan.innerText ? accountNameSpan.innerText : nickname;
-
+        const accountName = accountNameSpan ? accountNameSpan.innerText : nickname;
+    
         console.log(`改名次数: ${nameChangesNumber}, 发盘次数: ${pumpCountNumber}, 删贴次数: ${deletedTweetsNumber}`);
-
+    
         // ② 从"关注ta的KOL"区域获取数字和子节点列表
         const kolFollowersBox = document.querySelector('div.twitter-kol-followers-box');
         let kfNumber = 0;
@@ -121,31 +277,32 @@
                 followerItems.forEach(item => {
                     const screenName = item.getAttribute("data-screen-name");
                     const followerNameElement = item.querySelector('.kol-follower-name');
-
+    
                     // 获取头像 URL
                     const avatarElement = item.querySelector('img.kol-follower-avatar');
                     const avatarUrl = avatarElement ? avatarElement.getAttribute('src') : '';
-
+    
                     if (screenName && followerNameElement) {
                         const fullName = followerNameElement.innerText.trim();
                         childrenHandles.push({
                             handle: screenName.replace(/^@/, ""),
                             name: fullName,
-                            avatar: avatarUrl // 新增头像 URL 字段
+                            avatar: avatarUrl
                         });
                     }
                 });
             }
         }
-
+    
         console.log(`账户名称: ${accountName}, 关注的 KOL 数量: ${kfNumber}`);
-
+    
         // ③ 生成标签，使用从父账户数据中获取的名称
         const label = `头衔${accountName}_改名${nameChangesNumber}_发盘${pumpCountNumber}_删推${deletedTweetsNumber}_聪明钱${kfNumber}`;
         console.log(`生成的标签：${label}`);
-
-        // ③ 返回一个对象而不是拼接的 label
+    
+        // ④ 返回一个对象而不是拼接的 label
         return {
+            handle: handle,
             label: accountName,
             nameChanges: nameChangesNumber,
             pumpCount: pumpCountNumber,
@@ -400,8 +557,10 @@
         //     }
         // }
         //processNickname();
-        updateAllHandles();
+        updateAllHandles("unupdateHandles");
     }
+
+
 
     async function checkAndClickQuery(maxAttempts = 5) {
         let currentAttempt = parseInt(sessionStorage.getItem('queryAttemptCount') || '0');
@@ -637,97 +796,90 @@
     
     async function updateData(handle) {
         console.log(`开始增量更新账户 ${handle} 的数据...`);
-    
-        // 从数据库获取现有账户数据
-        const existingAccountData = await getAccountFromDB(handle);
-        if (!existingAccountData) {
-            console.log(`账户 ${handle} 不存在于数据库中，无法更新`);
-            return;
-        }
-    
-        // 从外部来源获取账户的最新数据
+      
+        // 1. 获取最新数据
         const newAccountData = await fetchAccountData(handle);
         if (!newAccountData) {
-            console.log(`无法获取账户 ${handle} 的新数据`);
-            return;
+          console.log(`无法获取账户 ${handle} 的新数据`);
+          return;
         }
-    
-        // 1. 更新账户字段
+      
+        // 2. 获取数据库中现有数据
+        const existingAccountData = await getAccountFromDB(handle);
+      
+        // 如果数据库中不存在，则直接插入新数据
+        if (!existingAccountData) {
+          newAccountData.timestamp = Date.now();
+          await addAccountToDB(newAccountData);
+          console.log(`账户 ${handle} 不存在，已直接插入新数据`);
+          return;
+        }
+      
+        // 3. 比较更新字段
         let updated = false;
-        const fieldsToUpdate = ['label', 'nameChanges', 'pumpCount', 'deletedTweets', 'smartMoney', 'nickname'];
-        fieldsToUpdate.forEach(field => {
-            if (existingAccountData[field] !== newAccountData[field]) {
-                existingAccountData[field] = newAccountData[field];
-                updated = true;
-            }
-        });
-    
-        // 2. 处理 children 数组
-        const newChildrenHandles = newAccountData.children; // 直接使用完整对象数组
-        const existingChildrenHandles = existingAccountData.children; // 已有数据的完整对象数组
-    
-        // 将 existingChildrenHandles 转换为 Map 以便快速查找
-        const existingChildrenMap = new Map(existingChildrenHandles.map(child => [child.handle, child]));
-    
-        // 找出新增的 children 和字段差异
-        const addedChildren = [];
-        for (const newChild of newChildrenHandles) {
-            const existingChild = existingChildrenMap.get(newChild.handle);
-            if (!existingChild) {
-                // 如果 handle 在现有数据中不存在，视为新增
-                addedChildren.push(newChild.handle);
-            } else {
-                // 如果 handle 存在，比较字段是否不同
-                if (existingChild.name !== newChild.name || existingChild.avatar !== newChild.avatar) {
-                    console.log(`账户 ${handle} 的子账户 ${newChild.handle} 的字段有变化`);
-                    updated = true;
-                    break; // 发现差异后跳出循环
-                }
-            }
+        const fieldsToUpdate = ['label', 'nameChanges', 'pumpCount', 'smartMoney', 'nickname'];
+        for (const field of fieldsToUpdate) {
+          if (existingAccountData[field] !== newAccountData[field]) {
+            existingAccountData[field] = newAccountData[field];
+            updated = true;
+          }
         }
-    
-        // 更新 children 数组为最新的（全量更新）
+      
+        // 4. 处理 children 数组
+        const newChildren = newAccountData.children;       // 新数据中的 children 数组（完整对象数组）
+        const existingChildren = existingAccountData.children; // 数据库中已有的 children 数组（完整对象数组）
+        const existingChildrenMap = new Map(existingChildren.map(child => [child.handle, child]));
+      
+        const addedChildren = []; // 保存新增的子账户 handle
+        for (const newChild of newChildren) {
+          const existingChild = existingChildrenMap.get(newChild.handle);
+          if (!existingChild) {
+            // 如果不存在，视为新增
+            addedChildren.push(newChild.handle);
+          } else if (existingChild.name !== newChild.name || existingChild.avatar !== newChild.avatar) {
+            console.log(`账户 ${handle} 的子账户 ${newChild.handle} 的字段有变化`);
+            updated = true;
+            break;
+          }
+        }
+      
+        // 如果发现字段更新或者有新增 children，则用最新的 children 数组替换原数据
         if (updated || addedChildren.length > 0) {
-            existingAccountData.children = newAccountData.children;
+          existingAccountData.children = newChildren;
         }
-    
-        // 如果有更新，保存到数据库
+      
+        // 5. 保存更新数据到数据库
         if (updated) {
-            existingAccountData.timestamp = Date.now();
-            await addAccountToDB(existingAccountData);
-            console.log(`账户 ${handle} 数据已增量更新`);
+          existingAccountData.timestamp = Date.now();
+          await addAccountToDB(existingAccountData);
+          console.log(`账户 ${handle} 数据已增量更新`);
         } else {
-            console.log(`账户 ${handle} 数据没有变化`);
+          console.log(`账户 ${handle} 数据没有变化`);
         }
-    
-        // 3. 检查 addedChildren 中的 handle 是否存在于数据库
+      
+        // 6. 检查 addedChildren 中的 handle 是否已存在于数据库，保存数据库中不存在的 childHandle 到 sessionStorage
         const trulyNewChildren = [];
         for (const childHandle of addedChildren) {
-            const existingChild = await getAccountFromDB(childHandle);
-            if (!existingChild) {
-                trulyNewChildren.push(childHandle); // 只添加数据库中不存在的 handle
-            }
+          const existingChild = await getAccountFromDB(childHandle);
+          if (!existingChild) {
+            trulyNewChildren.push(childHandle);
+          }
         }
-    
-        // 将真正新增的 childHandle 保存到 sessionStorage
+      
         if (trulyNewChildren.length > 0) {
-            // 从 sessionStorage 获取现有的 newChildHandles，若不存在则初始化为空数组
-            let newChildHandles = JSON.parse(sessionStorage.getItem('newChildHandles')) || [];
-    
-            // 添加 trulyNewChildren 中的 handle，并确保去重
-            trulyNewChildren.forEach(childHandle => {
-                if (!newChildHandles.includes(childHandle)) {
-                    newChildHandles.push(childHandle);
-                }
-            });
-    
-            // 更新 sessionStorage
-            sessionStorage.setItem('newChildHandles', JSON.stringify(newChildHandles));
-            console.log(`已将 ${trulyNewChildren.length} 个数据库中不存在的 childHandle 保存到 sessionStorage`);
+          let newChildHandles = JSON.parse(sessionStorage.getItem('newChildHandles')) || [];
+          trulyNewChildren.forEach(childHandle => {
+            if (!newChildHandles.includes(childHandle)) {
+              newChildHandles.push(childHandle);
+            }
+          });
+          sessionStorage.setItem('newChildHandles', JSON.stringify(newChildHandles));
+          console.log(`已将 ${trulyNewChildren.length} 个数据库中不存在的 childHandle 保存到 sessionStorage`);
         } else {
-            console.log(`没有新的 childHandle 需要保存到 sessionStorage`);
+          console.log(`没有新的 childHandle 需要保存到 sessionStorage`);
         }
-    }
+      }
+      
     
     // 添加一个"更新数据"按钮
     const updateButton = document.createElement("button");
@@ -745,7 +897,7 @@
             sessionStorage.setItem("isUpdating", "true");
             updateButton.innerText = "停止更新";
             console.log("开始或继续更新数据...");
-            updateAllHandles();
+            updateAllHandles("unupdateHandles");
         } else {
             // 停止更新
             sessionStorage.setItem("isUpdating", "false");
@@ -755,57 +907,61 @@
     });
 
 
-    async function updateAllHandles() {
-        let allHandles = JSON.parse(sessionStorage.getItem("allHandlesBackup"));
-        
+    async function updateAllHandles(handlesKey = "allHandles") {
+        // 直接从 sessionStorage 获取 handles
+        let allHandles = JSON.parse(sessionStorage.getItem(handlesKey));
+      
+        // 如果 sessionStorage 里没有数据，则从数据库获取
         if (!allHandles || allHandles.length === 0) {
-            allHandles = await getAllHandles();
-            if (!allHandles || allHandles.length === 0) {
-                console.log("数据库中没有 handle");
-                return;
-            }
-            sessionStorage.setItem("allHandlesBackup", JSON.stringify(allHandles));
+          allHandles = await getAllHandles();
+          if (!allHandles || allHandles.length === 0) {
+            console.log("数据库中没有 handle");
+            return;
+          }
+          sessionStorage.setItem(handlesKey, JSON.stringify(allHandles));
         }
-    
+      
+        // 使用固定的 sessionStorage 键 "currentIndex"
         let currentIndex = parseInt(sessionStorage.getItem("currentIndex") || "0", 10);
-    
+      
         try {
-            for (let i = currentIndex; i < allHandles.length; i++) {
-                if (sessionStorage.getItem("isUpdating") !== "true") {
-                    console.log("更新已停止");
-                    sessionStorage.setItem("currentIndex", i.toString());
-                    return;
-                }
-
-                const currentPath = window.location.pathname.split("/")[1];
-                if (currentPath !== allHandles[i]) {
-                    console.log(`当前页面不是目标账户，跳转到 ${allHandles[i]} 的页面`);
-                    sessionStorage.setItem("currentIndex", i.toString());
-                    await new Promise(res => setTimeout(res, 7000));
-                    location.href = `https://x.com/${allHandles[i]}`;
-                    console.log(`已跳转到 ${allHandles[i]}`);
-                    return;
-                }
-    
-                try {
-                    await updateData(allHandles[i]);
-                    console.log(`更新完成 ${i + 1}/${allHandles.length}`);
-                    sessionStorage.setItem("currentIndex", (i + 1).toString());
-                    console.log("处理第", i, "项,currentIndex 将更新为", i + 1);
-                } catch (error) {
-                    console.error(`更新 handle ${allHandles[i]} 失败: ${error}`);
-                }
+          for (let i = currentIndex; i < allHandles.length; i++) {
+            if (sessionStorage.getItem("isUpdating") !== "true") {
+              console.log("更新已停止");
+              sessionStorage.setItem("currentIndex", i.toString());
+              return;
             }
-    
-            console.log("所有 handle 已更新完成");
-            sessionStorage.setItem("isUpdating", "false");
-            sessionStorage.removeItem("currentIndex");
-            sessionStorage.removeItem("allHandlesBackup");
-            updateButton.innerText = "更新数据";
+      
+            const currentPath = window.location.pathname.split("/")[1];
+            if (currentPath !== allHandles[i]) {
+              console.log(`当前页面不是目标账户，跳转到 ${allHandles[i]} 的页面`);
+              sessionStorage.setItem("currentIndex", i.toString());
+              await new Promise(res => setTimeout(res, 7000));
+              location.href = `https://x.com/${allHandles[i]}`;
+              console.log(`已跳转到 ${allHandles[i]}`);
+              return;
+            }
+      
+            try {
+              await updateData(allHandles[i]);
+              console.log(`更新完成 ${i + 1}/${allHandles.length}`);
+              sessionStorage.setItem("currentIndex", (i + 1).toString());
+              console.log("处理第", i, "项，currentIndex 更新为", i + 1);
+            } catch (error) {
+              console.error(`更新 handle ${allHandles[i]} 失败: ${error}`);
+            }
+          }
+      
+          console.log("所有 handle 已更新完成");
+          sessionStorage.setItem("isUpdating", "false");
+          sessionStorage.removeItem("currentIndex");
+          sessionStorage.removeItem(handlesKey); // 移除 handlesKey
+          updateButton.innerText = "更新数据";
         } catch (error) {
-            console.error("更新过程发生错误:", error);
+          console.error("更新过程发生错误:", error);
         }
-    }
+      }
+      
     
 
     // 直接执行初始化
