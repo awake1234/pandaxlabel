@@ -9506,7 +9506,9 @@ const It = class It {
             const itemDiv = document.createElement('div');
             itemDiv.className = 'note-smart-followers-item';
             itemDiv.setAttribute('data-screen-name', follower.handle);
-    
+            // 添加鼠标悬浮时显示手型效果
+            itemDiv.style.cursor = 'pointer';
+
             // 如果有头像
             if (follower.avatar) {
                 const avatarImg = document.createElement('img');
@@ -9521,6 +9523,14 @@ const It = class It {
             nameSpan.className = 'note-smart-followers-name';
             nameSpan.textContent = follower.name;
             itemDiv.appendChild(nameSpan);
+
+            // 添加点击事件处理：点击后跳转到对应的 X 页面
+            itemDiv.addEventListener('click', function () {
+                const screenName = this.getAttribute('data-screen-name');
+                // 根据需要构造跳转 URL，比如跳转到 https://x.com/后跟 screenName
+                window.location.href = `https://x.com/${screenName}`;
+            });
+
     
             listDiv.appendChild(itemDiv);
         });
