@@ -98,6 +98,7 @@
     baseToolBarBtn: 'note-obj-twitter-base-tool-bar-btn',
     commentToolBarBtn: 'note-obj-twitter-comment-tool-bar-btn',
     noteAnalyticsBox:'note-analytics-box',
+    noteAnalyticsItem:'note-analytics-item',
     noteSmartFollowersBox:'note-smart-followers-box',
     noteSmartFollowersTitle: 'note-smart-followers-title',
     noteSmartFollowersList: 'note-smart-followers-list',
@@ -219,6 +220,11 @@
       color: #3c81df;
       gap: 8px;
       padding: 2px 4px;  
+    }
+
+    .${nameSet.noteAnalyticsItem}:hover{
+       text-decoration: underline; 
+       color: #2a5ca8; 
     }
 
     .${nameSet.noteSmartFollowersBox} {

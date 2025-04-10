@@ -6328,6 +6328,12 @@ const os = "7.4.4",
                     i = o.groupKey;
                 this.judgeUsers(e) ? (n = this.items[e].tag || "", r = t || this.items[e].name || "", i = this.items[e].group || "default") : t && (n = t, r = t), o.show(e, n, i, r)
             },
+
+            showEditPopup(){
+                const e =  FoEdit();
+                e.show();
+
+            },
             hidePopover() {
                 this.config.addNote.showPopoverFrame && Zn().hide()
             },
@@ -6487,6 +6493,24 @@ const os = "7.4.4",
             }
         }
     }),
+    
+    FoEdit= nt("editPopup",{
+       state:()=>({
+           isShowEdit:!1
+
+       }),
+
+       actions:{
+
+            show(){
+               this.isShowEdit = !0
+            }
+       }
+
+
+    }),
+
+
     mr = nt("managementFrame", {
         state: () => ({
             isInsert: !1,
@@ -6711,6 +6735,113 @@ const bn = {
             ])
         }
     }),
+
+    ec = {
+        class: "note-obj-edit-popup-dialog"  // 弹窗容器的 CSS 类
+    },
+    tc = {
+        class: "note-obj-edit-popup-input-container"
+    },
+    ic = ["placeholder", "onKeyup"],
+    nc = ["title"], // 按钮 title 属性
+    
+    EditPopup = ve({
+        __name: "NoteObjEditPopup",
+        setup(e) {
+            // 获取编辑弹窗对应的 store，参考 addFrame 中调用 Fo()
+            const store = FoEdit();
+            // 定义三个局部响应式变量用于输入值（也可以直接绑定 store 中的字段）
+            const val1 = ye(""),
+                  val2 = ye(""),
+                  val3 = ye("");
+    
+            // 处理键盘事件：Enter 执行保存，Escape 执行取消
+            function onKeyupHandler(e) {
+                if (e.key === "Enter") {
+                    save();
+                } else if (e.key === "Escape") {
+                    cancel();
+                }
+            }
+    
+            function save() {
+                // 调用 store 中的方法写回修改后的值，同时关闭弹窗
+                store.saveEdit({
+                    value1: val1.value,
+                    value2: val2.value,
+                    value3: val3.value
+                });
+            }
+    
+            function cancel() {
+                // 关闭弹窗，不做数据保存
+                store.closeEdit();
+            }
+            
+            // 当弹窗显示时，将 store 中初始数据同步到局部变量
+            Ae(store.isShowEdit, (newVal) => {
+                if (newVal) {
+                    val1.value = store.initialValue1 || "";
+                    val2.value = store.initialValue2 || "";
+                    val3.value = store.initialValue3 || "";
+                }
+            });
+    
+            // 返回渲染函数：条件渲染 v-if 绑定 store.isShowEdit
+            return (x, k) =>
+                le(
+                    (Z(), ee("div", {
+                        class: "note-obj-edit-popup-container",
+                        onClick: ie(cancel, ["self"])
+                    }, [
+                        w("div", ec, [
+                            // 输入区域（容器）
+                            w("div", tc, [
+                                // 第一个输入框
+                                ee("input", {
+                                    "onUpdate:modelValue": k[0] || (k[0] = f => val1.value = f),
+                                    type: "text",
+                                    placeholder: S(store.lang.editPlaceholder1),
+                                    class: "note-obj-edit-popup-input",
+                                    onKeyup: Zt(ie(onKeyupHandler, ["prevent"]), ["enter", "esc"])
+                                }, null, 40, ic),
+                                // 第二个输入框
+                                ee("input", {
+                                    "onUpdate:modelValue": k[1] || (k[1] = f => val2.value = f),
+                                    type: "text",
+                                    placeholder: S(store.lang.editPlaceholder2),
+                                    class: "note-obj-edit-popup-input",
+                                    onKeyup: Zt(ie(onKeyupHandler, ["prevent"]), ["enter", "esc"])
+                                }, null, 40, ic),
+                                // 第三个输入框
+                                ee("input", {
+                                    "onUpdate:modelValue": k[2] || (k[2] = f => val3.value = f),
+                                    type: "text",
+                                    placeholder: S(store.lang.editPlaceholder3),
+                                    class: "note-obj-edit-popup-input",
+                                    onKeyup: Zt(ie(onKeyupHandler, ["prevent"]), ["enter", "esc"])
+                                }, null, 40, ic)
+                            ]),
+                            // 操作按钮区域
+                            ee("button", {
+                                type: "button",
+                                title: S(store.lang.saveEditTitle),
+                                class: "note-obj-edit-popup-save-btn",
+                                onClick: ie(save, ["stop"])
+                            }, F(S(store.lang.saveEditText)), 9, nc),
+                            ee("button", {
+                                type: "button",
+                                title: S(store.lang.cancelEditTitle),
+                                class: "note-obj-edit-popup-cancel-btn",
+                                onClick: ie(cancel, ["stop"])
+                            }, F(S(store.lang.cancelEditText)), 9, nc)
+                        ])
+                    ], 512)),
+                    [[we, S(store.isShowEdit)]]
+                )
+        }
+    }),
+
     yc = {
         previous: {},
         timer: {},
@@ -9569,6 +9700,10 @@ const It = class It {
         nameChangesSpan.setAttribute('data-type', 'nameChanges');
         nameChangesSpan.style.cursor = 'pointer';
         nameChangesSpan.textContent = `改名 (${analyticsData.nameChanges})`; // 修改为“改名 (对应值)”
+
+        nameChangesSpan.addEventListener("click", a => {
+            a.stopPropagation(), this.store.showEditPopup();
+        });
 
         const pumpCountSpan = document.createElement('span');
         pumpCountSpan.className = 'note-analytics-item';
