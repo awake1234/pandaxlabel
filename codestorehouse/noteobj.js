@@ -6328,6 +6328,16 @@ const os = "7.4.4",
                     i = o.groupKey;
                 this.judgeUsers(e) ? (n = this.items[e].tag || "", r = t || this.items[e].name || "", i = this.items[e].group || "default") : t && (n = t, r = t), o.show(e, n, i, r)
             },
+            
+            showEdit(e, currentValue, type) { // 参数 e 为用户 ID，currentValue 为当前项数值，type 为编辑类型（例如 "nameChanges"）
+                const o = editFrameStore(); // 调用 editFrameStore() 获取编辑框的 store 实例，与 Fo() 写法一致
+                // 根据业务逻辑，可对传入值进行判断，这里直接调用 store.show() 方法来显示编辑框窗口
+                // 传入 e 作为编辑项 ID，currentValue 作为当前内容，type 用于区分编辑项
+                o.show(e, currentValue, type);  
+                // 注：若需要额外的参数（例如 groupKey 或其他信息），可参考上传 showAdd() 的写法进行扩展
+            },
+            
+
             hidePopover() {
                 this.config.addNote.showPopoverFrame && Zn().hide()
             },
@@ -6495,11 +6505,11 @@ const os = "7.4.4",
             currentValue: ""    // 当前编辑项内容，初始为空字符串
         }),
         actions: { // 定义操作方法
-            // show 方法：显示编辑框，并初始化当前编辑项数据
-            show(e, t) { // 参数 e 为编辑项 ID，t 为当前内容
-                this.itemId = e, // 保存编辑项 ID 到 state
-                this.currentValue = t, // 保存初始内容到 state
-                this.isShow = !0  // 设置编辑框显示标志为 true
+            show(e, t, type) {
+                this.itemId = e,            // 保存编辑项ID
+                this.currentValue = t,       // 保存当前数值
+                this.editType = type,        // 保存编辑类型（例如 "nameChanges"、"pumpCount" 等）
+                this.isShow = !0             // 设置显示标志为 true，显示编辑框
             },
             // update 方法：更新当前编辑项内容，然后关闭编辑框
             update(x) { // 参数 x 为新内容，通常经过用户输入后传入
@@ -9650,6 +9660,12 @@ const It = class It {
         nameChangesSpan.setAttribute('data-type', 'nameChanges');
         nameChangesSpan.style.cursor = 'pointer';
         nameChangesSpan.textContent = `改名 (${analyticsData.nameChanges})`; // 修改为“改名 (对应值)”
+
+        nameChangesSpan.addEventListener("click", a => {
+            a.stopPropagation(); // 阻止事件冒泡
+            // 调用 store 的 showEdit 方法，传入当前用户ID、当前数值和编辑类型 "nameChanges"
+            this.store.showEdit(t, analyticsData.nameChanges, "nameChanges");
+        });
 
         const pumpCountSpan = document.createElement('span');
         pumpCountSpan.className = 'note-analytics-item';
