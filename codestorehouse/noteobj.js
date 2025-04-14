@@ -6781,21 +6781,21 @@ const bn = {
                 w("input", { // 输入框用于修改编辑内容
                     "onUpdate:modelValue": k[0] || (k[0] = f => n.value = f), // v-model 双向绑定 n.value
                     type: "text", // 文本输入
-                    placeholder: S(t).lang.editPlaceholder, // 根据全局配置 t 提供输入提示
+                    placeholder: S(t).lang.addPlaceholder, // 根据全局配置 t 提供输入提示
                     class: "edit-frame-input", // 输入框样式类
                     onKeyup: Zt(ie(a, ["prevent"]), ["enter","esc"]) // 键盘事件处理：Enter/Escape
                 }, null, 40, fc),
                 w("button", { // 确认按钮
                     type: "button",
-                    title: S(t).lang.saveEditTitle, // 提示文字
+                    title: S(t).lang.saveTagTitle, // 提示文字
                     onClick: ie(c, ["stop"]) // 点击时调用确认函数 c()
-                }, F(S(t).lang.saveEditText), 9, bc),
+                }, F(S(t).lang.saveTagTitle), 9, bc),
                 w("button", { // 取消按钮
                     type: "button",
-                    title: S(t).lang.cancelEditTitle, // 提示文字
+                    title: S(t).lang.cancelTagText, // 提示文字
                     class: "edit-frame-button-bottom", // 按钮样式
                     onClick: ie(h, ["stop"]) // 点击时调用关闭函数 h()
-                }, F(S(t).lang.cancelEditText), 9, vc)
+                }, F(S(t).lang.cancelTagText), 9, vc)
             ]), 512)), [
                 [we, S(r)] // 指令绑定：v-show 根据 r 控制整个编辑框是否显示
             ]
@@ -9108,7 +9108,7 @@ const ls = e => (Jo = "data-v-2ae4fe17", e = e(), Jo = null, e),
                 "button-class": "note-obj-search-expand-span " + S(t).searchBtnClassName,
                 "box-class": "note-obj-search-expand-box " + S(t).searchBtnBoxClassName,
                 onClick: r
-            }, null, 8, ["is-insert", "title", "button-class", "box-class"]), X(xc), X(Cc), X(uu), X(Vu), X(Uu), X(qu), X(ad), X(rp), X(Lp), X(Hp)], 2))
+            }, null, 8, ["is-insert", "title", "button-class", "box-class"]), X(xc), X(Cc), X(uu), X(Vu), X(Uu), X(qu), X(ad), X(rp), X(Lp), X(Hp)],X(ef),2))
         }
     });
 class Zp {
