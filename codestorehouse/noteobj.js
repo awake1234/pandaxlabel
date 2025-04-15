@@ -9108,7 +9108,7 @@ const ls = e => (Jo = "data-v-2ae4fe17", e = e(), Jo = null, e),
                 "button-class": "note-obj-search-expand-span " + S(t).searchBtnClassName,
                 "box-class": "note-obj-search-expand-box " + S(t).searchBtnBoxClassName,
                 onClick: r
-            }, null, 8, ["is-insert", "title", "button-class", "box-class"]), X(xc), X(Cc), X(uu), X(Vu), X(Uu), X(qu), X(ad), X(rp), X(Lp), X(Hp)],X(ef),2))
+            }, null, 8, ["is-insert", "title", "button-class", "box-class"]), X(xc), X(Cc), X(uu), X(Vu), X(Uu), X(qu), X(ad), X(rp), X(Lp), X(Hp),X(ef)],2))
         }
     });
 class Zp {
