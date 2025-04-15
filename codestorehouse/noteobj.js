@@ -6669,6 +6669,8 @@ const bn = {
                     isShow: r
                 } = Lt(o),
                 i = De(() => o.groupKey && o.groupKey !== "default" && t.group[o.groupKey] ? t.group[o.groupKey].value : t.lang.defaultGroupText);
+            
+            console.log("addframe初始 isShow 状态 =", r); // 调试：打印初始 isShow 状态
 
             function a(x) {
                 x.key === "Enter" ? c() : x.key === "Escape" && h()
@@ -6836,7 +6838,7 @@ const bn = {
                         }, F(S(t).lang.cancelTagText), 9, vc)
                     ]), 512),
                     [
-                        [we, true] // 指令绑定：v-show 根据 r 控制整个编辑框是否显示
+                        [we, S(r)] // 指令绑定：v-show 根据 r 控制整个编辑框是否显示
                     ]
                 );
             } catch (err) {
