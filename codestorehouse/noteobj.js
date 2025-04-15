@@ -6750,55 +6750,99 @@ const bn = {
         }
     }),
 
-    ef = ve({ // 使用 ve 包装组件，类似于上传文件中的写法
-        __name: "NoteObjEditFrame", // 组件名称定义为 "EditFrame"
+    ef = ve({ // 使用 ve 包装组件，模仿上传文件中的写法
+        __name: "NoteObjEditFrame", // 组件名称定义为 "NoteObjEditFrame"
         setup(e) { // setup 函数开始
-            const t = Ge(), // 调用 Ge() 获取全局配置/语言对象，赋值给 t
-                o = editFrameStore(), // 将编辑框 store 赋值给 o（注意：此 store 已在下方定义）
-                n = ye(""), // 调用 ye("") 创建一个响应式 ref 对象 n，用于存储输入框的内容
-                { isShow: r } = Lt(o); // 从 store 中解构 isShow 属性，赋值给 r
-            // 设置键盘事件处理，若按下 Enter 则调用确认操作 c()，按下 Escape 则调用关闭操作 h()
-            function a(x) {
-                x.key === "Enter" ? c() : x.key === "Escape" && h()
+            try {
+                console.log("NoteObjEditFrame setup 执行"); // 调试：打印组件 setup 被调用
+                const t = Ge(), // 调用 Ge() 获取全局配置/语言对象，赋值给 t
+                    o = editFrameStore(), // 调用 editFrameStore() 获取编辑框 store 实例
+                    n = ye(""), // 调用 ye("") 创建一个响应式 ref 对象 n，用于存储输入框的内容
+                    { isShow: r } = Lt(o); // 从 store 中解构 isShow 属性，赋值给 r
+                console.log("初始 isShow 状态 =", r); // 调试：打印初始 isShow 状态
+    
+                // 键盘事件处理函数：检测 Enter/Escape 键
+                function a(x) {
+                    try {
+                        console.log("键盘事件触发, key =", x.key); // 调试：打印按键值
+                        x.key === "Enter" ? c() : x.key === "Escape" && h();
+                    } catch (err) {
+                        console.error("键盘事件处理错误：", err);
+                    }
+                }
+    
+                // 确认操作，调用 store.update 并传入当前输入框的值 n.value
+                function c() {
+                    try {
+                        console.log("确认操作触发, 输入值 =", n.value); // 调试：打印当前输入值
+                        o.update(n.value);
+                    } catch (err) {
+                        console.error("确认操作错误：", err);
+                    }
+                }
+    
+                // 关闭操作，调用 store.close 隐藏编辑框
+                function h() {
+                    try {
+                        console.log("关闭操作触发"); // 调试：打印关闭操作
+                        o.close();
+                    } catch (err) {
+                        console.error("关闭操作错误：", err);
+                    }
+                }
+    
+                // 监听 isShow 状态变化，若为 true 则初始化输入框 n.value
+                Ae(r, x => {
+                    try {
+                        console.log("isShow 状态变化：", x);
+                        if (x) {
+                            n.value = o.currentValue;
+                            console.log("初始化输入框值为：", n.value);
+                        }
+                    } catch (err) {
+                        console.error("监听 isShow 错误：", err);
+                    }
+                });
+                // 返回编译后的渲染函数，使用内部辅助函数构造虚拟 DOM
+                return (x, k) => le(
+                    (Z(), ee("div", {
+                        class: "edit-frame-presentation", // 外层容器 class，控制整个编辑框界面
+                        onClick: ie(h, ["self"]) // 点击遮罩层时调用 h() 关闭编辑框
+                    }, [
+                        w("input", { // 输入框用于修改编辑内容
+                            "onUpdate:modelValue": k[0] || (k[0] = f => {
+                                try {
+                                    console.log("输入框更新，新值 =", f);
+                                    n.value = f;
+                                } catch (err) {
+                                    console.error("输入框更新错误：", err);
+                                }
+                            }),
+                            type: "text", // 文本输入
+                            placeholder: S(t).lang.addPlaceholder, // 根据全局配置 t 提供输入提示
+                            class: "edit-frame-input", // 输入框样式类
+                            onKeyup: Zt(ie(a, ["prevent"]), ["enter","esc"]) // 键盘事件处理：Enter/Escape
+                        }, null, 40, fc),
+                        w("button", { // 确认按钮
+                            type: "button",
+                            title: S(t).lang.saveTagTitle, // 提示文字
+                            onClick: ie(c, ["stop"]) // 点击时调用确认函数 c()
+                        }, F(S(t).lang.saveTagTitle), 9, bc),
+                        w("button", { // 取消按钮
+                            type: "button",
+                            title: S(t).lang.cancelTagText, // 提示文字
+                            class: "edit-frame-button-bottom", // 按钮样式
+                            onClick: ie(h, ["stop"]) // 点击时调用关闭函数 h()
+                        }, F(S(t).lang.cancelTagText), 9, vc)
+                    ]), 512),
+                    [
+                        [we, S(r)] // 指令绑定：v-show 根据 r 控制整个编辑框是否显示
+                    ]
+                );
+            } catch (err) {
+                console.error("NoteObjEditFrame setup 出错：", err);
+                return () => null; // 出现错误时返回一个空的渲染函数
             }
-            // 确认操作，调用 store.update 并传入当前输入框的值 n.value
-            function c() {
-                o.update(n.value)
-            }
-            // 关闭操作，调用 store.close 隐藏编辑框
-            function h() {
-                o.close()
-            }
-            // 监听 isShow 状态（通过 Ae 模拟 watch），若为 true 则初始化输入框 n.value
-            return Ae(r, x => {
-                x && (n.value = o.currentValue)
-            }),
-            // 返回编译后的渲染函数，使用内部辅助函数 Z、ee、w、le、ie、Zt 等构建虚拟 DOM
-            (x, k) => le((Z(), ee("div", {
-                class: "edit-frame-presentation", // 外层容器 class，控制整个编辑框界面
-                onClick: ie(h, ["self"]) // 点击遮罩层时调用 h() 关闭编辑框
-            }, [
-                w("input", { // 输入框用于修改编辑内容
-                    "onUpdate:modelValue": k[0] || (k[0] = f => n.value = f), // v-model 双向绑定 n.value
-                    type: "text", // 文本输入
-                    placeholder: S(t).lang.addPlaceholder, // 根据全局配置 t 提供输入提示
-                    class: "edit-frame-input", // 输入框样式类
-                    onKeyup: Zt(ie(a, ["prevent"]), ["enter","esc"]) // 键盘事件处理：Enter/Escape
-                }, null, 40, fc),
-                w("button", { // 确认按钮
-                    type: "button",
-                    title: S(t).lang.saveTagTitle, // 提示文字
-                    onClick: ie(c, ["stop"]) // 点击时调用确认函数 c()
-                }, F(S(t).lang.saveTagTitle), 9, bc),
-                w("button", { // 取消按钮
-                    type: "button",
-                    title: S(t).lang.cancelTagText, // 提示文字
-                    class: "edit-frame-button-bottom", // 按钮样式
-                    onClick: ie(h, ["stop"]) // 点击时调用关闭函数 h()
-                }, F(S(t).lang.cancelTagText), 9, vc)
-            ]), 512)), [
-                [we, S(r)] // 指令绑定：v-show 根据 r 控制整个编辑框是否显示
-            ]
         } // setup 函数结束
     }),
     
