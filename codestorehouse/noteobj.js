@@ -6836,7 +6836,7 @@ const bn = {
                         }, F(S(t).lang.cancelTagText), 9, vc)
                     ]), 512),
                     [
-                        [we, S(r)] // 指令绑定：v-show 根据 r 控制整个编辑框是否显示
+                        [we, true] // 指令绑定：v-show 根据 r 控制整个编辑框是否显示
                     ]
                 );
             } catch (err) {
