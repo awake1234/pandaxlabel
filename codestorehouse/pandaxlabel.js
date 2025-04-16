@@ -273,6 +273,32 @@
     
 
 
+    .note-obj-edit-frame-presentation{
+      display: flex;
+      position: fixed;
+      background-color: #00000080;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 100001;
+      align-items: center;
+      justify-content: center; 
+    }
+
+    .note-obj-edit-frame-dialog{
+      background-color: #15202b;
+      position: relative;
+      width: 400px;
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      border: 0px solid #000;
+      box-shadow: 0 1px 10px #000c;
+    }
+    
+
+
     ${selector.homepage.showName}, ${selector.modal.showName} {
       white-space: normal;
     }
@@ -285,6 +311,8 @@
     .note-obj-group-frame-cancel-content {
       font-size: 12px;
     }`;
+
+  
   const noteObj = new Note_Obj({
     id: 'myTwitterNote',
     script: {
