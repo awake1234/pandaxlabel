@@ -296,12 +296,19 @@
       border: 0px solid #000;
       box-shadow: 0 1px 10px #000c;
     }
-    
+    .note-obj-edit-frame-dialog button{
+      min-height: 48px;
+      cursor: pointer;
+      background-color: #0000;
+      color: #fff;
+      border: 1px solid rgba(0, 0, 0, .5);
+    }
 
 
     ${selector.homepage.showName}, ${selector.modal.showName} {
       white-space: normal;
     }
+    .note-obj-edit-frame-dialog button,
     .note-obj-add-frame-dialog button {
       text-align: center;
     }
