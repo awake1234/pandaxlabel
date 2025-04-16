@@ -6836,7 +6836,7 @@ const bn = {
                             class: "note-obj-edit-frame-button-bottom", // 按钮样式
                             onClick: ie(h, ["stop"]) // 点击时调用关闭函数 h()
                         }, F(S(t).lang.cancelTagText), 9, vc)
-                    ]), 512),
+                    ],512)),
                     [
                         [we, S(r)] // 指令绑定：v-show 根据 r 控制整个编辑框是否显示
                     ]
