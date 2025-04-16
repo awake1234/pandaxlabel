@@ -6835,9 +6835,9 @@ const bn = {
                             // 确认按钮
                             w("button", {
                                 type: "button",
-                                title: S(t).lang.saveTagTitle, // 按钮提示文字
+                                title: S(t).lang.saveTagText, // 按钮提示文字
                                 onClick: ie(c, ["stop"]) // 点击时调用确认函数 c()
-                            }, F(S(t).lang.saveTagTitle), 9, bc),
+                            }, F(S(t).lang.saveTagText), 9, bc),
                             // 取消按钮
                             w("button", {
                                 type: "button",

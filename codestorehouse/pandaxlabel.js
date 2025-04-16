@@ -292,16 +292,29 @@
       width: 400px;
       border-radius: 12px;
       display: flex;
-      flex-direction: column;
+      flex-direction: row;
       border: 0px solid #000;
       box-shadow: 0 1px 10px #000c;
     }
-    .note-obj-edit-frame-dialog button{
+    .note-obj-edit-frame-dialog input {
+      flex: 1;                
+      min-width: 0;         
+      margin: 8px;           
+      padding: 4px 8px;      
+      border-radius: 4px;    
+      border: 1px solid rgba(255, 255, 255, 0.2); 
+      background: rgba(255, 255, 255, 0.1);       
+      color: #fff;           
+    }
+
+    .note-obj-edit-frame-dialog button {
       min-height: 48px;
+      max-width: 80px;      
       cursor: pointer;
       background-color: #0000;
       color: #fff;
       border: 1px solid rgba(0, 0, 0, .5);
+      margin: 8px;         
     }
 
 
