@@ -6756,100 +6756,139 @@ const bn = {
         __name: "NoteObjEditFrame", // 组件名称定义为 "NoteObjEditFrame"
         setup(e) { // setup 函数开始
             try {
-                console.log("NoteObjEditFrame setup 执行"); // 调试：打印组件 setup 被调用
-                const t = Ge(), // 调用 Ge() 获取全局配置/语言对象，赋值给 t
-                    o = editFrameStore(), // 调用 editFrameStore() 获取编辑框 store 实例
-                    n = ye(""), // 调用 ye("") 创建一个响应式 ref 对象 n，用于存储输入框的内容
-                    { isShow: r } = Lt(o); // 从 store 中解构 isShow 属性，赋值给 r
-                console.log("初始 isShow 状态 =", r); // 调试：打印初始 isShow 状态
-    
-                // 键盘事件处理函数：检测 Enter/Escape 键
-                function a(x) {
-                    try {
-                        console.log("键盘事件触发, key =", x.key); // 调试：打印按键值
-                        x.key === "Enter" ? c() : x.key === "Escape" && h();
-                    } catch (err) {
-                        console.error("键盘事件处理错误：", err);
-                    }
+              console.log("NoteObjEditFrame setup 执行"); // 调试：打印组件 setup 被调用
+              const t = Ge(), // 调用 Ge() 获取全局配置/语言对象，赋值给 t
+                o = editFrameStore(), // 调用 editFrameStore() 获取编辑框 store 实例
+                n = ye(""), // 调用 ye("") 创建一个响应式 ref 对象 n，用于存储输入框的内容
+                { isShow: r } = Lt(o); // 从 store 中解构 isShow 属性，赋值给 r
+
+              // 添加一个计算属性来处理 placeholder
+              const placeholderText = De(() => {
+                return `请输入新的${o.edittype}值,点击enter保存`;
+              });
+
+              console.log("初始 isShow 状态 =", r); // 调试：打印初始 isShow 状态
+
+              // 键盘事件处理函数：检测 Enter/Escape 键
+              function a(x) {
+                try {
+                  console.log("键盘事件触发, key =", x.key); // 调试：打印按键值
+                  x.key === "Enter" ? c() : x.key === "Escape" && h();
+                } catch (err) {
+                  console.error("键盘事件处理错误：", err);
                 }
-        
-                // 确认操作，调用 store.update 并传入当前输入框的值 n.value
-                function c() {
-                    try {
-                        console.log("确认操作触发, 输入值 =", n.value); // 调试：打印当前输入值
-                        o.update(n.value);
-                    } catch (err) {
-                        console.error("确认操作错误：", err);
-                    }
+              }
+
+              // 确认操作，调用 store.update 并传入当前输入框的值 n.value
+              function c() {
+                try {
+                  console.log("确认操作触发, 输入值 =", n.value); // 调试：打印当前输入值
+                  o.update(n.value);
+                } catch (err) {
+                  console.error("确认操作错误：", err);
                 }
-        
-                // 关闭操作，调用 store.close 隐藏编辑框
-                function h() {
-                    try {
-                        console.log("关闭操作触发"); // 调试：打印关闭操作
-                        o.close();
-                    } catch (err) {
-                        console.error("关闭操作错误：", err);
-                    }
+              }
+
+              // 关闭操作，调用 store.close 隐藏编辑框
+              function h() {
+                try {
+                  console.log("关闭操作触发"); // 调试：打印关闭操作
+                  o.close();
+                } catch (err) {
+                  console.error("关闭操作错误：", err);
                 }
-        
-                // 监听 isShow 状态变化，若为 true 则初始化输入框 n.value
-                Ae(r, x => {
-                    try {
-                        console.log("isShow 状态变化：", x);
-                        if (x) {
-                            n.value = o.currentValue;
-                            console.log("初始化输入框值为：", n.value);
-                        }
-                    } catch (err) {
-                        console.error("监听 isShow 错误：", err);
-                    }
-                });
-        
-                // 返回编译后的渲染函数，采用内部辅助函数构造虚拟 DOM
-                // 注意：这里使用了嵌套写法：外层使用 note-obj-edit-frame-presentation 作为遮罩层，
-                // 内层使用 note-obj-edit-frame-dialog 作为对话框主体，用来显示输入框和按钮
-                return (x, k) => le(
-                    ee("div", { // 外层容器，负责遮罩及点击空白处关闭
-                        class: "note-obj-edit-frame-presentation", // 外层容器 class
-                        onClick: ie(h, ["self"]) // 点击遮罩层时调用 h() 关闭编辑框
-                    }, [
-                        ee("div", { // 内层对话框容器
-                            class: "note-obj-edit-frame-dialog" // 内层对话框的样式类
-                        }, [
-                            // 输入框用于修改编辑内容
-                            w("input", {
-                                "onUpdate:modelValue": k[0] || (k[0] = f => {
-                                    try {
-                                        console.log("输入框更新，新值 =", f);
-                                        n.value = f;
-                                    } catch (err) {
-                                        console.error("输入框更新错误：", err);
-                                    }
-                                }),
-                                type: "text", // 文本输入框
-                                placeholder: S(t).lang.addPlaceholder, // 根据全局配置 t 提供输入提示
-                                class: "note-obj-edit-frame-input", // 输入框样式类
-                                onKeyup: Zt(ie(a, ["prevent"]), ["enter","esc"]) // 绑定键盘事件，处理 Enter/Escape
-                            }, null, 40, fc),
-                            // 确认按钮
-                            w("button", {
-                                type: "button",
-                                title: S(t).lang.saveTagText, // 按钮提示文字
-                                onClick: ie(c, ["stop"]) // 点击时调用确认函数 c()
-                            }, F(S(t).lang.saveTagText), 9, bc),
-                            // 取消按钮
-                            w("button", {
-                                type: "button",
-                                title: S(t).lang.cancelTagText, // 按钮提示文字
-                                class: "note-obj-edit-frame-button-bottom", // 按钮样式类
-                                onClick: ie(h, ["stop"]) // 点击时调用关闭函数 h()
-                            }, F(S(t).lang.cancelTagText), 9, vc)
-                        ], 512) // 注意：把 patchFlag 512 直接作为内层 ee 的第四个参数
-                    ], 512), // 外层 ee 同样传入 patchFlag 512
+              }
+
+              // 监听 isShow 状态变化，若为 true 则初始化输入框 n.value
+              Ae(r, (x) => {
+                try {
+                  console.log("isShow 状态变化：", x);
+                  if (x) {
+                    n.value = o.currentValue;
+                    console.log("初始化输入框值为：", n.value);
+                  }
+                } catch (err) {
+                  console.error("监听 isShow 错误：", err);
+                }
+              });
+
+              // 返回编译后的渲染函数，采用内部辅助函数构造虚拟 DOM
+              // 注意：这里使用了嵌套写法：外层使用 note-obj-edit-frame-presentation 作为遮罩层，
+              // 内层使用 note-obj-edit-frame-dialog 作为对话框主体，用来显示输入框和按钮
+              return (x, k) =>
+                le(
+                  ee(
+                    "div",
+                    {
+                      // 外层容器，负责遮罩及点击空白处关闭
+                      class: "note-obj-edit-frame-presentation", // 外层容器 class
+                      onClick: ie(h, ["self"]), // 点击遮罩层时调用 h() 关闭编辑框
+                    },
                     [
-                        [we, S(r)] // 指令绑定：v-show 根据 r 控制整个编辑框的显示状态
-                    ]
+                      ee(
+                        "div",
+                        {
+                          // 内层对话框容器
+                          class: "note-obj-edit-frame-dialog", // 内层对话框的样式类
+                        },
+                        [
+                          // 输入框用于修改编辑内容
+                          w(
+                            "input",
+                            {
+                              "onUpdate:modelValue":
+                                k[0] ||
+                                (k[0] = (f) => {
+                                  try {
+                                    console.log("输入框更新，新值 =", f);
+                                    n.value = f;
+                                  } catch (err) {
+                                    console.error("输入框更新错误：", err);
+                                  }
+                                }),
+                              type: "text", // 文本输入框
+                              placeholder: placeholderText.value, // 根据全局配置 t 提供输入提示
+                              class: "note-obj-edit-frame-input", // 输入框样式类
+                              onKeyup: Zt(ie(a, ["prevent"]), ["enter", "esc"]), // 绑定键盘事件，处理 Enter/Escape
+                            },
+                            null,
+                            40,
+                            fc
+                          ),
+                          // 确认按钮
+                          w(
+                            "button",
+                            {
+                              type: "button",
+                              title: S(t).lang.saveTagText, // 按钮提示文字
+                              onClick: ie(c, ["stop"]), // 点击时调用确认函数 c()
+                            },
+                            F(S(t).lang.saveTagText),
+                            9,
+                            bc
+                          ),
+                          // 取消按钮
+                          w(
+                            "button",
+                            {
+                              type: "button",
+                              title: S(t).lang.cancelTagText, // 按钮提示文字
+                              class: "note-obj-edit-frame-button-bottom", // 按钮样式类
+                              onClick: ie(h, ["stop"]), // 点击时调用关闭函数 h()
+                            },
+                            F(S(t).lang.cancelTagText),
+                            9,
+                            vc
+                          ),
+                        ],
+                        512
+                      ), // 注意：把 patchFlag 512 直接作为内层 ee 的第四个参数
+                    ],
+                    512
+                  ), // 外层 ee 同样传入 patchFlag 512
+                  [
+                    [we, S(r)], // 指令绑定：v-show 根据 r 控制整个编辑框的显示状态
+                  ]
                 );
             } catch (err) {
                 console.error("NoteObjEditFrame setup 出错：", err);
@@ -9690,60 +9729,70 @@ const It = class It {
     }
 
     createAnalyticsBox(t,i) {
-       
-       const analyticsData = this.store.getAnalyticsData(t);
+      const analyticsData = this.store.getAnalyticsData(t);
 
-       if(!analyticsData){
-          console.log("user is not noted");
-          return null;
-       }
+      if (!analyticsData) {
+        console.log("user is not noted");
+        return null;
+      }
 
-        // 创建 DocumentFragment 作为临时容器
-        const fragment = document.createDocumentFragment();
+      // 创建 DocumentFragment 作为临时容器
+      const fragment = document.createDocumentFragment();
 
-        // 创建前置的 div 元素
-        const prefixDiv = document.createElement('div');
-        prefixDiv.className = 'css-175oi2r';
-        fragment.appendChild(prefixDiv);
+      // 创建前置的 div 元素
+      const prefixDiv = document.createElement("div");
+      prefixDiv.className = "css-175oi2r";
+      fragment.appendChild(prefixDiv);
 
-    
-        const box = document.createElement('div');
-        box.className = 'note-analytics-box';
-        box.setAttribute('data-usernames', i || '');
-        box.setAttribute('data-user-id', t);
-    
-        const nameChangesSpan = document.createElement('span');
-        nameChangesSpan.className = 'note-analytics-item';
-        nameChangesSpan.setAttribute('data-type', 'nameChanges');
-        nameChangesSpan.style.cursor = 'pointer';
-        nameChangesSpan.textContent = `改名 (${analyticsData.nameChanges})`; // 修改为“改名 (对应值)”
+      const box = document.createElement("div");
+      box.className = "note-analytics-box";
+      box.setAttribute("data-usernames", i || "");
+      box.setAttribute("data-user-id", t);
 
-        nameChangesSpan.addEventListener("click", a => {
-            a.stopPropagation(); // 阻止事件冒泡
-            // 调用 store 的 showEdit 方法，传入当前用户ID、当前数值和编辑类型 "nameChanges"
-            this.store.showEdit(t, analyticsData.nameChanges, "nameChanges");
-        });
+      const nameChangesSpan = document.createElement("span");
+      nameChangesSpan.className = "note-analytics-item";
+      nameChangesSpan.setAttribute("data-type", "nameChanges");
+      nameChangesSpan.style.cursor = "pointer";
+      nameChangesSpan.textContent = `改名 (${analyticsData.nameChanges})`; // 修改为“改名 (对应值)”
 
-        const pumpCountSpan = document.createElement('span');
-        pumpCountSpan.className = 'note-analytics-item';
-        pumpCountSpan.setAttribute('data-type', 'pumpCount');
-        pumpCountSpan.style.cursor = 'pointer';
-        pumpCountSpan.textContent = `PUMP (${analyticsData.pumpCount})`; // 修改为“发盘 (对应值)”
+      nameChangesSpan.addEventListener("click", (a) => {
+        a.stopPropagation(); // 阻止事件冒泡
+        // 调用 store 的 showEdit 方法，传入当前用户ID、当前数值和编辑类型 "nameChanges"
+        this.store.showEdit(t, analyticsData.nameChanges, "改名");
+      });
 
-        const deletedTweetsSpan = document.createElement('span');
-        deletedTweetsSpan.className = 'note-analytics-item';
-        deletedTweetsSpan.setAttribute('data-type', 'deletedTweets');
-        deletedTweetsSpan.style.cursor = 'pointer';
-        deletedTweetsSpan.textContent = `删推 (${analyticsData.deletedTweets})`; // 修改为“删推 (对应值)”
+      const pumpCountSpan = document.createElement("span");
+      pumpCountSpan.className = "note-analytics-item";
+      pumpCountSpan.setAttribute("data-type", "pumpCount");
+      pumpCountSpan.style.cursor = "pointer";
+      pumpCountSpan.textContent = `PUMP (${analyticsData.pump})`; // 修改为“发盘 (对应值)”
 
-        box.appendChild(nameChangesSpan);
-        box.appendChild(pumpCountSpan);
-        box.appendChild(deletedTweetsSpan);
-        
-        // 将 twitter-analytics-box 添加到 fragment 中
-        fragment.appendChild(box);
+      // PUMP 计数的点击事件（新增）
+      pumpCountSpan.addEventListener("click", (a) => {
+        a.stopPropagation();
+        this.store.showEdit(t, analyticsData.pumpCount, "PUMP");
+      });
 
-        return fragment;
+      const deletedTweetsSpan = document.createElement("span");
+      deletedTweetsSpan.className = "note-analytics-item";
+      deletedTweetsSpan.setAttribute("data-type", "deletedTweets");
+      deletedTweetsSpan.style.cursor = "pointer";
+      deletedTweetsSpan.textContent = `删推 (${analyticsData.deletedTweets})`; // 修改为“删推 (对应值)”
+
+      // 删推计数的点击事件（新增）
+      deletedTweetsSpan.addEventListener("click", (a) => {
+        a.stopPropagation();
+        this.store.showEdit(t, analyticsData.deletedTweets, "删推");
+      });
+
+      box.appendChild(nameChangesSpan);
+      box.appendChild(pumpCountSpan);
+      box.appendChild(deletedTweetsSpan);
+
+      // 将 twitter-analytics-box 添加到 fragment 中
+      fragment.appendChild(box);
+
+      return fragment;
     }
 
     createNoteTag(t, o = {}, n = "span", r = [], i) {
