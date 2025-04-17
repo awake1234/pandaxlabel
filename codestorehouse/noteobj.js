@@ -9765,7 +9765,7 @@ const It = class It {
       pumpCountSpan.className = "note-analytics-item";
       pumpCountSpan.setAttribute("data-type", "pumpCount");
       pumpCountSpan.style.cursor = "pointer";
-      pumpCountSpan.textContent = `PUMP (${analyticsData.pump})`; // 修改为“发盘 (对应值)”
+      pumpCountSpan.textContent = `PUMP (${analyticsData.pumpCount})`; // 修改为“发盘 (对应值)”
 
       // PUMP 计数的点击事件（新增）
       pumpCountSpan.addEventListener("click", (a) => {
