@@ -6502,7 +6502,8 @@ const os = "7.4.4",
         state: () => ({ // 定义 store 状态，返回一个对象
             isShow: !1,         // 编辑框显示状态，初始为 false（即隐藏）
             itemId: "",         // 当前编辑项 ID，初始为空字符串
-            currentValue: ""    // 当前编辑项内容，初始为空字符串
+            currentValue: "",   // 当前编辑项内容，初始为空字符串
+            editType:""
         }),
         actions: { // 定义操作方法
             show(e, t, type) {
