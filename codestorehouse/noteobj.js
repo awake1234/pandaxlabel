@@ -6763,9 +6763,17 @@ const bn = {
                 n = ye(""), // 调用 ye("") 创建一个响应式 ref 对象 n，用于存储输入框的内容
                 { isShow: r } = Lt(o); // 从 store 中解构 isShow 属性，赋值给 r
 
-              // 添加一个计算属性来处理 placeholder
+              // 添加类型映射
+              const typeMap = {
+                nameChanges: "名称变更次数",
+                pumpCount: "PUMP次数",
+                deletedTweets: "删推次数",
+              };
+
+              // 修改计算属性，添加类型映射转换
               const placeholderText = De(() => {
-                return `请输入新的${o.edittype}值,点击enter保存`;
+                const displayType = typeMap[o.edittype] || o.edittype || "数值";
+                return `请输入新的${displayType},点击enter保存`;
               });
 
               console.log("初始 isShow 状态 =", r); // 调试：打印初始 isShow 状态
@@ -9759,7 +9767,7 @@ const It = class It {
       nameChangesSpan.addEventListener("click", (a) => {
         a.stopPropagation(); // 阻止事件冒泡
         // 调用 store 的 showEdit 方法，传入当前用户ID、当前数值和编辑类型 "nameChanges"
-        this.store.showEdit(t, analyticsData.nameChanges, "改名");
+        this.store.showEdit(t, analyticsData.nameChanges, "nameChanges");
       });
 
       const pumpCountSpan = document.createElement("span");
@@ -9771,7 +9779,7 @@ const It = class It {
       // PUMP 计数的点击事件（新增）
       pumpCountSpan.addEventListener("click", (a) => {
         a.stopPropagation();
-        this.store.showEdit(t, analyticsData.pumpCount, "PUMP");
+        this.store.showEdit(t, analyticsData.pumpCount, "pumpCount");
       });
 
       const deletedTweetsSpan = document.createElement("span");
@@ -9783,7 +9791,7 @@ const It = class It {
       // 删推计数的点击事件（新增）
       deletedTweetsSpan.addEventListener("click", (a) => {
         a.stopPropagation();
-        this.store.showEdit(t, analyticsData.deletedTweets, "删推");
+        this.store.showEdit(t, analyticsData.deletedTweets, "deletedTweets");
       });
 
       box.appendChild(nameChangesSpan);
