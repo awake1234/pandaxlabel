@@ -6772,7 +6772,7 @@ const bn = {
 
               // 修改计算属性，添加类型映射转换
               const placeholderText = De(() => {
-                const displayType = typeMap[o.edittype] || o.edittype || "数值";
+                const displayType = typeMap[o.editType] || o.editType || "数值";
                 return `请输入新的${displayType},点击enter保存`;
               });
 
@@ -6798,7 +6798,7 @@ const bn = {
                 }
               }
 
-              // 关闭操作，调用 store.close 隐藏编辑框
+              // 关闭操作，调用 store.close 隐藏编辑框Ï
               function h() {
                 try {
                   console.log("关闭操作触发"); // 调试：打印关闭操作
